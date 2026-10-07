@@ -1,94 +1,88 @@
-# My Money Diary (আমার টাকার ডায়েরি)
+# KORI
 
-## Project Overview
-- **Project Name:** My Money Diary (আমার টাকার ডায়েরি)
-- **Package Name / Namespace:** `com.aistudio.moneydiary.mndytr`
-- **Application ID:** `com.aistudio.moneydiary.mndytr`
-- **Current Stage:** Stage 2, Prompt 03.1 — Local Financial Core Foundation (Verified, Rectified, Rebuilt & Exported)
+A clean Kotlin-based finance and budgeting starter built to help track spending, analyze categories, and monitor budget health.
 
----
+## Overview
 
-## Technical Specifications
-- **Database Engine:** Android Room Persistence Library 2.7.0
-- **Database Schema Version:** Version 1 (`exportSchema = true`)
-- **Schema JSON Path:** `app/schemas/com.aistudio.moneydiary.mndytr.data.local.database.AppDatabase/1.json`
-- **Room Entity Count:** Exactly 14 entities
-  1. `accounts`
-  2. `categories`
-  3. `persons`
-  4. `work_records`
-  5. `transactions` (Authoritative Ledger Events)
-  6. `receivables`
-  7. `payables`
-  8. `savings_goals`
-  9. `frequent_shortcuts`
-  10. `attachments`
-  11. `backup_jobs` (Schema-only in MVP)
-  12. `backup_metadata` (Schema-only in MVP)
-  13. `app_settings` (Non-secret settings only)
-  14. `audit_logs` (Append-only immutable audit trail)
-- **Ledger Event Code Count:** Exactly 22 distinct event codes across 5 `LedgerEventKind` categories
-- **Monetary Storage & Representation:** Strict 64-bit integer Paisa (`Long`, where ৳1.00 = 100 Paisa). Checked arithmetic via `Math.addExact` / `Math.subtractExact` with zero floating-point calculations.
+KORI is designed as a simple but polished finance tool for personal budgeting. It focuses on:
 
----
+- tracking expenses by category
+- calculating total monthly spending
+- estimating remaining budget
+- identifying risk when spending approaches or exceeds the target
+- keeping the structure maintainable and easy to extend
 
-## Implemented Scope (Stage 2 Core Foundation)
-- Complete 14-entity Room schema with `ForeignKey.RESTRICT` rules protecting financial history.
-- 14 Data Access Objects (DAOs) supporting transactional operations.
-- `FinancialCalculationEngine` supporting checked balance derivations, period income/expense filtering, and work contract projections.
-- `FinancialService` orchestrating 20 domain operations (Opening balances, Direct income/expenses, Advances, Receivables, Payables, Loans, Transfers with fees, Refunds with ceilings, Balance adjustments, Reversals, and Atomic work settlements).
-- 36 Automated Unit and Database Tests (all passing with 0 failures and 0 errors).
+## Features
 
----
+- type-safe Kotlin models
+- modular package structure for domain, repository, and analysis logic
+- budget summary generation
+- category breakdowns for expense analysis
+- test coverage for core logic
 
-## Deferred Scope (Post-MVP Roadmap)
-- Full Bengali Jetpack Compose UI (Dashboard, Quick Add modal, Smart-text parser, Work ledger screens) — Scheduled for Prompt 04.
-- Encrypted Google Drive file upload and cloud backup sync.
-- Real-time multi-device mutation sync (`sync_queue` and `conflict_staging` entities).
-- Device biometric authentication prompts and hardware keystore encryption.
-- Camera receipt OCR and background SMS banking parsing.
+## Project structure
 
----
-
-## Build & Test Requirements
-- **Runtime JDK:** OpenJDK 21.0.12.1 (Temurin LTS)
-- **Gradle Version:** Gradle 9.3.1
-- **Android Gradle Plugin (AGP):** 9.1.1
-- **Kotlin Version:** 2.2.10
-- **KSP Version:** 2.3.5
-- **compileSdk:** 36 (Android 16 / API 36)
-- **minSdk:** 24 (Android 7.0)
-- **targetSdk:** 36
-
-### Build Commands
-```bash
-# Clean build, execute all unit and database tests, and assemble debug APK
-gradle clean testDebugUnitTest assembleDebug
+```text
+KORI/
+├── src/
+│   ├── main/
+│   │   └── kotlin/
+│   │       └── com/mrbikel/kori/
+│   │           ├── Main.kt
+│   │           ├── model/
+│   │           ├── repository/
+│   │           └── service/
+│   └── test/
+│       └── kotlin/
+│           └── com/mrbikel/kori/service/
+├── build.gradle.kts
+├── settings.gradle.kts
+├── gradle.properties
+├── .gitignore
+├── LICENSE
+└── README.md
 ```
 
-### Test Commands
+## Quick start
+
 ```bash
-# Execute unit and Robolectric database tests
-gradle testDebugUnitTest
+git clone https://github.com/MrBikel/KORI.git
+cd KORI
+./gradlew run
 ```
 
----
+## Example output
 
-## Verified Artifacts
-- **Debug APK Artifact:** `My-Money-Diary-Stage-2-Core-Debug.apk` (or `app/build/outputs/apk/debug/app-debug.apk`)
-- **APK File Size:** 22,390,787 bytes (21.35 MB)
-- **APK SHA-256 Checksum:** `1f521170f19b0f93426da39e89d8f42cbabc86871a3343dfd57a43ea4dbf90d6`
-- **Source ZIP Artifact:** `My-Money-Diary-Stage-2-Core-Source.zip`
+```text
+KORI Budget Summary
+Monthly budget: $1800.00
+Total spent: $1435.00
+Remaining: $365.00
+Top category: Food - $420.00
+Risk level: Moderate
+```
 
----
+## Why this is optimized
 
-## Status Boundaries
-- **Core Source:** Implemented
-- **Core Tests:** 36 Tests Passed (0 Failed, 0 Skipped)
-- **Clean Build:** Passed (Gradle 9.3.1)
-- **Debug APK:** Generated and Verified
-- **APK Installation:** Not Installed (Pending UI stage)
-- **Runtime Verification:** Not Tested (Pending UI stage)
-- **UI:** Not Implemented (Scheduled for Prompt 04)
-- **Google Drive Backup:** Not Implemented / Not Connected
-- **Multi-Device Live Sync:** Deferred
+This starter uses a clear separation of responsibilities:
+
+- `model` holds the business data
+- `repository` manages expense storage
+- `service` performs analysis and summary logic
+- `Main` keeps the app entry point minimal and readable
+
+This keeps the project scalable and easy to extend for features such as CSV exports, recurring bills, dashboards, or persistence.
+
+## License
+
+This project is licensed under the MIT License.
+
+## Profile tip
+
+To showcase this repo on your GitHub profile:
+
+1. Open your GitHub profile.
+2. Click "Customize your pins".
+3. Select `KORI` and pin it to your profile.
+
+This makes the project visible for recruiters, collaborators, and visitors.

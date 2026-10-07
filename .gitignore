@@ -1,18 +1,16 @@
+# Gradle / Kotlin
+.gradle/
+build/
+**/build/
+
+# IDE
+.idea/
+.vscode/
 *.iml
-.gradle
-.kotlin
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
+
+# OS
 .DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
-local.properties
-.env
-debug.keystore
+Thumbs.db
+
+# Logs
+*.log
