@@ -1,14 +1,18 @@
-# Gradle / Kotlin
+# KORI - Finance tracker
+
+# Build artifacts
 .gradle/
 build/
 **/build/
 
-# IDE
+# JetBrains IDE
 .idea/
-.vscode/
 *.iml
 
-# OS
+# VS Code
+.vscode/
+
+# OS files
 .DS_Store
 Thumbs.db
 
