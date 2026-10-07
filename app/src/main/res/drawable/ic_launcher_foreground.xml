@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Abstract Cowrie Symbol Body in Pure White #FFFFFF -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,26 C41,26 31,37 31,54 C31,71 41,82 54,82 C67,82 77,71 77,54 C77,37 67,26 54,26 Z" />
+    
+    <!-- Central Slot Cutout (#234E45) -->
+    <path
+        android:fillColor="#234E45"
+        android:pathData="M54,36 C50,36 46,43 46,54 C46,65 50,72 54,72 C58,72 62,65 62,54 C62,43 58,36 54,36 Z" />
+        
+    <!-- Pure White Center Core -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,44 C52,44 50,48 50,54 C50,60 52,64 54,64 C56,64 58,60 58,54 C58,48 56,44 54,44 Z" />
+
+    <!-- Subtle Horizontal Ledger Line -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M18,54 L26,54 M82,54 L90,54" />
+</vector>

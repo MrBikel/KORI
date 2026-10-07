@@ -1,0 +1,107 @@
+> Task :app:clean
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:generateDebugBuildConfig
+> Task :app:generateDebugResources
+> Task :app:packageDebugResources
+> Task :app:processDebugNavigationResources
+> Task :app:parseDebugLocalResources
+> Task :app:generateDebugRFile
+> Task :app:mapDebugSourceSetPaths
+> Task :app:checkDebugAarMetadata
+> Task :app:compileDebugNavigationResources
+> Task :app:javaPreCompileDebug
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug
+> Task :app:processDebugMainManifest
+> Task :app:processDebugManifest
+> Task :app:preDebugUnitTestBuild UP-TO-DATE
+> Task :app:javaPreCompileDebugUnitTest
+> Task :app:processDebugManifestForPackage
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :app:mergeDebugAssets
+> Task :app:mergeDebugResources
+> Task :app:processDebugUnitTestManifest
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :app:compressDebugAssets
+> Task :app:desugarDebugFileDependencies
+> Task :app:mergeDebugJniLibFolders
+> Task :app:checkDebugDuplicateClasses
+> Task :app:mergeDebugNativeLibs
+> Task :app:mergeLibDexDebug
+
+> Task :app:stripDebugDebugSymbols
+Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so, libdatastore_shared_counter.so. Run with --info option to learn more.
+
+> Task :app:validateSigningDebug
+> Task :app:writeDebugAppMetadata
+> Task :app:writeDebugSigningConfigVersions
+> Task :app:preDiagnosticDebugBuild UP-TO-DATE
+> Task :app:mergeDiagnosticDebugNativeDebugMetadata NO-SOURCE
+> Task :app:generateDiagnosticDebugBuildConfig
+> Task :app:generateDiagnosticDebugResources
+> Task :app:packageDiagnosticDebugResources
+> Task :app:processDiagnosticDebugNavigationResources
+> Task :app:processDebugResources
+> Task :app:parseDiagnosticDebugLocalResources
+> Task :app:packageDebugUnitTestForUnitTest
+> Task :app:generateDebugUnitTestConfig
+> Task :app:generateDiagnosticDebugRFile
+> Task :app:kspDebugKotlin
+> Task :app:javaPreCompileDiagnosticDebug
+> Task :app:generateDiagnosticDebugAssets UP-TO-DATE
+> Task :app:mergeDiagnosticDebugAssets
+> Task :app:compressDiagnosticDebugAssets
+> Task :app:kspDiagnosticDebugKotlin
+> Task :app:checkDiagnosticDebugDuplicateClasses
+> Task :app:desugarDiagnosticDebugFileDependencies
+> Task :app:mergeExtDexDebug
+> Task :app:compileDebugKotlin
+> Task :app:mergeLibDexDiagnosticDebug
+> Task :app:checkDiagnosticDebugAarMetadata
+> Task :app:mapDiagnosticDebugSourceSetPaths
+> Task :app:compileDiagnosticDebugNavigationResources
+> Task :app:mergeExtDexDiagnosticDebug
+> Task :app:createDiagnosticDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDiagnosticDebug
+> Task :app:processDiagnosticDebugMainManifest
+> Task :app:processDiagnosticDebugManifest
+> Task :app:processDiagnosticDebugManifestForPackage
+> Task :app:mergeDiagnosticDebugJniLibFolders
+> Task :app:mergeDiagnosticDebugNativeLibs
+
+> Task :app:stripDiagnosticDebugDebugSymbols
+Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so, libdatastore_shared_counter.so. Run with --info option to learn more.
+
+> Task :app:validateSigningDiagnosticDebug
+> Task :app:writeDiagnosticDebugAppMetadata
+> Task :app:writeDiagnosticDebugSigningConfigVersions
+> Task :app:mergeDiagnosticDebugResources
+> Task :app:compileDiagnosticDebugKotlin
+> Task :app:processDiagnosticDebugResources
+> Task :app:compileDebugJavaWithJavac
+> Task :app:processDebugJavaRes
+> Task :app:bundleDebugClassesToCompileJar
+> Task :app:bundleDebugClassesToRuntimeJar
+> Task :app:mergeDebugJavaResource
+> Task :app:kspDebugUnitTestKotlin
+> Task :app:dexBuilderDebug
+> Task :app:compileDiagnosticDebugJavaWithJavac
+> Task :app:processDiagnosticDebugJavaRes
+> Task :app:mergeProjectDexDebug
+> Task :app:mergeDiagnosticDebugJavaResource
+> Task :app:dexBuilderDiagnosticDebug
+> Task :app:mergeProjectDexDiagnosticDebug
+> Task :app:packageDebug
+> Task :app:createDebugApkListingFileRedirect
+> Task :app:assembleDebug
+> Task :app:packageDiagnosticDebug
+> Task :app:createDiagnosticDebugApkListingFileRedirect
+> Task :app:assembleDiagnosticDebug
+> Task :app:compileDebugUnitTestKotlin
+> Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processDebugUnitTestJavaRes
+> Task :app:testDebugUnitTest
+
+BUILD SUCCESSFUL in 2m 46s
+87 actionable tasks: 87 executed

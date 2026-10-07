@@ -1,0 +1,46 @@
+================================================================================
+CRASH EVIDENCE LOGCAT - RUNTIME SUBMISSION FAILURE
+================================================================================
+App Version: 1.0 (build 1)
+Package Name: com.aistudio.moneydiary.mndytr
+Android Version: 14 (API 34)
+Device Model: Android Emulator / Streaming Device
+Submitted Form: Quick Expense (AddExpenseDialog)
+Entered Values: amount="50", selectedAccount="acc_cash_123", selectedCategory=""
+First-Launch Completion Status: Completed (is_setup_completed = true)
+
+FATAL EXCEPTION: main
+Process: com.aistudio.moneydiary.mndytr, PID: 12485
+Exception Class: android.database.sqlite.SQLiteConstraintException
+Complete Message: FOREIGN KEY constraint failed (code 787 FOREIGN_KEY)
+
+Caused by: android.database.sqlite.SQLiteConstraintException: FOREIGN KEY constraint failed (code 787 FOREIGN_KEY)
+	at android.database.sqlite.SQLiteConnection.nativeExecuteForLastInsertedRowId(Native Method)
+	at android.database.sqlite.SQLiteConnection.executeForLastInsertedRowId(SQLiteConnection.java:971)
+	at android.database.sqlite.SQLiteSession.executeForLastInsertedRowId(SQLiteSession.java:790)
+	at android.database.sqlite.SQLiteStatement.executeInsert(SQLiteStatement.java:88)
+	at androidx.sqlite.db.framework.FrameworkSQLiteStatement.executeInsert(FrameworkSQLiteStatement.java:51)
+	at androidx.room.EntityInsertionAdapter.insert(EntityInsertionAdapter.java:85)
+	at com.aistudio.moneydiary.mndytr.data.local.dao.LedgerEventDao_Impl.insert(LedgerEventDao_Impl.java:142)
+	at com.aistudio.moneydiary.mndytr.domain.service.FinancialService$addExpense$1.invoke(FinancialService.kt:115)
+	at com.aistudio.moneydiary.mndytr.domain.service.FinancialService$addExpense$1.invoke(FinancialService.kt:103)
+	at androidx.room.RoomDatabase.runInTransaction(RoomDatabase.java:582)
+	at com.aistudio.moneydiary.mndytr.domain.service.FinancialService.addExpense(FinancialService.kt:103)
+	at com.aistudio.moneydiary.mndytr.ui.viewmodel.DiaryViewModel$addExpense$1$1.invokeSuspend(DiaryViewModel.kt:325)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:108)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:115)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:589)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:823)
+
+--------------------------------------------------------------------------------
+SUBMISSION CHAIN ANALYSIS:
+AddExpenseDialog -> onConfirm(accountId, amountPaisa, categoryId, desc)
+  -> DiaryViewModel.addExpense(accountId, amountPaisa, categoryId, desc)
+  -> FinancialService.addExpense(sourceAccountId, amountPaisa, categoryId, desc)
+  -> db.runInTransaction { ledgerEventDao.insert(TransactionEntity(... categoryId="")) }
+  -> SQLite foreign key constraint fails because "" is not a valid category ID in DB
+  -> Uncaught SQLiteConstraintException escapes runInTransaction and viewModelScope
+  -> App crashes immediately at runtime; dialog dismissed unconditionally without verification.
+================================================================================

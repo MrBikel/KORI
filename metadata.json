@@ -1,0 +1,6 @@
+{
+  "name": "কড়ি",
+  "description": "কড়ি: আয়-ব্যয়ের ব্যক্তিগত খাতা - প্রতিটি কড়ির নির্ভুল হিসাব।",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

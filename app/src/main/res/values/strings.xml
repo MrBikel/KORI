@@ -1,0 +1,107 @@
+<resources>
+    <string name="app_name">কড়ি</string>
+    <string name="app_name_bn">কড়ি</string>
+    <string name="app_tagline">প্রতিটি কড়ির নির্ভুল হিসাব</string>
+
+    <!-- Navigation & Titles -->
+    <string name="nav_dashboard">ড্যাশবোর্ড</string>
+    <string name="nav_history">লেনদেন ইতিহাস</string>
+    <string name="nav_work">কাজের হিসাব</string>
+    <string name="nav_settings">সেটিংস</string>
+    <string name="nav_transaction_detail">লেনদেনের বিস্তারিত</string>
+
+    <!-- Storage indicator -->
+    <string name="status_local_only">শুধু এই ফোনে সংরক্ষিত</string>
+
+    <!-- Financial Core Terms -->
+    <string name="label_income">আয়</string>
+    <string name="label_expense">ব্যয়</string>
+    <string name="label_net_change">নিট পরিবর্তন</string>
+    <string name="label_balance">বর্তমান স্থিতি</string>
+    <string name="label_account">হিসাব</string>
+    <string name="label_accounts">আমার ওয়ালেট ও হিসাবসমূহ</string>
+    <string name="label_cash">নগদ</string>
+    <string name="label_transaction">লেনদেন</string>
+    <string name="label_work_advance">কাজের অগ্রিম</string>
+    <string name="label_receivable">পাওনা</string>
+    <string name="label_payable">দেনা</string>
+    <string name="label_savings">সঞ্চয়</string>
+    <string name="label_transfer">স্থানান্তর</string>
+    <string name="label_opening_balance">প্রারম্ভিক স্থিতি</string>
+    <string name="label_description">বিবরণ</string>
+    <string name="label_notes">নোট (ঐচ্ছিক)</string>
+    <string name="label_amount">টাকার পরিমাণ</string>
+    <string name="label_category">খাত / ক্যাটাগরি</string>
+    <string name="label_person">ব্যক্তি / ক্লায়েন্ট</string>
+    <string name="label_date_time">তারিখ ও সময়</string>
+
+    <!-- Dashboard Sections -->
+    <string name="section_today_summary">আজকের সারসংক্ষেপ</string>
+    <string name="section_obligations">আর্থিক দায় ও পাওনা</string>
+    <string name="section_shortcuts">দ্রুত শর্টকাট</string>
+    <string name="section_recent_transactions">সাম্প্রতিক লেনদেন</string>
+    <string name="view_all">সবগুলো দেখুন</string>
+    <string name="no_transactions_yet">এখনো কোনো লেনদেন নেই</string>
+    <string name="no_accounts_yet">কোনো সক্রিয় হিসাব নেই</string>
+
+    <!-- Primary Actions -->
+    <string name="action_add_expense">ব্যয় যোগ করুন</string>
+    <string name="action_add_income">আয় যোগ করুন</string>
+    <string name="action_other_transactions">অন্যান্য লেনদেন</string>
+    <string name="action_confirm">নিশ্চিত করুন</string>
+    <string name="action_save">সংরক্ষণ করুন</string>
+    <string name="action_cancel">বাতিল</string>
+    <string name="action_undo">পূর্বাবস্থায় ফেরান (Undo)</string>
+    <string name="action_reverse">বিপরীত হিসাব দিয়ে সংশোধন</string>
+    <string name="action_filter">ফিল্টার</string>
+    <string name="action_search">অনুসন্ধান করুন</string>
+
+    <!-- Work Advance Terms -->
+    <string name="work_title">কাজের শিরোনাম</string>
+    <string name="work_agreed_price">চুক্তিবদ্ধ মোট মূল্য</string>
+    <string name="work_advance_amount">অগ্রিম টাকা</string>
+    <string name="work_expected_remaining">প্রত্যাশিত অবশিষ্ট মূল্য</string>
+    <string name="work_earned_income_zero">অর্জিত আয়: ৳০</string>
+    <string name="work_recognized_receivable_zero">স্বীকৃত পাওনা: ৳০</string>
+    <string name="income_advance_notice">কাজ সম্পন্ন হওয়ার আগে পাওয়া টোকেন বা অগ্রিম এখানে যোগ করবেন না। “কাজের অগ্রিম” ব্যবহার করুন।</string>
+
+    <!-- Transfer Terms -->
+    <string name="transfer_source">উৎস হিসাব</string>
+    <string name="transfer_destination">গন্তব্য হিসাব</string>
+    <string name="transfer_fee">সেবা ফি (যদি থাকে)</string>
+    <string name="transfer_source_decrease_preview">উৎস থেকে মোট কমবে:</string>
+    <string name="savings_allocation_title">সঞ্চয়ে স্থানান্তর</string>
+
+    <!-- Shortcuts -->
+    <string name="shortcut_tea">চা</string>
+    <string name="shortcut_cigarette">সিগারেট</string>
+    <string name="shortcut_rickshaw">রিকশা</string>
+    <string name="shortcut_breakfast">নাশতা</string>
+    <string name="shortcut_recharge">মোবাইল রিচার্জ</string>
+
+    <!-- First Launch Onboarding -->
+    <string name="onboarding_welcome_title">স্বাগতম</string>
+    <string name="onboarding_step_language">ভাষা ও সংখ্যা পদ্ধতি নির্বাচন</string>
+    <string name="onboarding_step_accounts">আপনার প্রাথমিক হিসাবসমূহ চালু করুন</string>
+    <string name="onboarding_finish">সেটআপ সম্পন্ন করুন</string>
+    <string name="default_acc_cash">নগদ</string>
+    <string name="default_acc_bkash">bKash</string>
+    <string name="default_acc_nagad">Nagad</string>
+    <string name="default_acc_bank">ব্যাংক</string>
+    <string name="default_acc_savings">সঞ্চয়</string>
+
+    <!-- Duplicate & Validation warnings -->
+    <string name="duplicate_warning_title">সম্ভাব্য পুনরাবৃত্তি</string>
+    <string name="duplicate_warning_message">একই ধরনের একটি লেনদেন অল্প আগে সংরক্ষণ করা হয়েছে। আবার যোগ করতে চান?</string>
+    <string name="action_add_again">আবার যোগ করুন</string>
+    <string name="error_amount_required">সঠিক টাকার পরিমাণ লিখুন</string>
+    <string name="error_same_account_transfer">উৎস এবং গন্তব্য হিসাব ভিন্ন হতে হবে</string>
+    <string name="error_account_required">হিসাব নির্বাচন করুন</string>
+    <string name="error_category_required">ক্যাটাগরি নির্বাচন করুন</string>
+    <string name="error_reversal_reason_required">সংশোধনের কারণ লিখুন</string>
+
+    <!-- Reversal explanation -->
+    <string name="reversal_dialog_title">লেনদেন সংশোধন</string>
+    <string name="reversal_dialog_desc">নিশ্চিত লেনদেন মুছে ফেলা যায় না। এর পরিবর্তে একটি বিপরীত এন্ট্রি দিয়ে হিসাবের ভারসাম্য ঠিক করা হবে এবং অডিট ট্রেইল সংরক্ষিত থাকবে।</string>
+    <string name="reversal_reason_label">সংশোধনের কারণ</string>
+</resources>

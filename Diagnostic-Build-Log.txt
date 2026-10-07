@@ -1,0 +1,92 @@
+Calculating task graph as no cached configuration is available for tasks: clean testDebugUnitTest :app:assembleDiagnostic
+> Task :app:preBuild UP-TO-DATE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:preDebugUnitTestBuild UP-TO-DATE
+> Task :app:generateDiagnosticAssets UP-TO-DATE
+> Task :app:preDiagnosticBuild UP-TO-DATE
+> Task :app:clean
+> Task :app:generateDebugResources
+> Task :app:generateDebugBuildConfig
+> Task :app:packageDebugResources
+> Task :app:javaPreCompileDebug
+> Task :app:mapDebugSourceSetPaths
+> Task :app:processDebugNavigationResources
+> Task :app:parseDebugLocalResources
+> Task :app:checkDebugAarMetadata
+> Task :app:compileDebugNavigationResources
+> Task :app:generateDebugRFile
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug
+> Task :app:javaPreCompileDebugUnitTest
+> Task :app:mergeDebugAssets
+> Task :app:mergeDiagnosticNativeDebugMetadata NO-SOURCE
+> Task :app:generateDiagnosticBuildConfig
+> Task :app:generateDiagnosticResources
+> Task :app:packageDiagnosticResources
+> Task :app:processDiagnosticNavigationResources
+> Task :app:parseDiagnosticLocalResources
+> Task :app:generateDiagnosticRFile
+> Task :app:processDebugMainManifest
+> Task :app:processDebugManifest
+> Task :app:processDebugManifestForPackage
+> Task :app:processDebugUnitTestManifest
+> Task :app:javaPreCompileDiagnostic
+> Task :app:mergeDiagnosticAssets
+> Task :app:compressDiagnosticAssets
+> Task :app:mergeDebugResources
+> Task :app:checkDiagnosticDuplicateClasses
+> Task :app:desugarDiagnosticFileDependencies
+> Task :app:processDebugResources
+> Task :app:packageDebugUnitTestForUnitTest
+> Task :app:generateDebugUnitTestConfig
+> Task :app:kspDebugKotlin
+> Task :app:kspDiagnosticKotlin
+> Task :app:mergeLibDexDiagnostic
+> Task :app:checkDiagnosticAarMetadata
+> Task :app:mapDiagnosticSourceSetPaths
+> Task :app:compileDiagnosticNavigationResources
+> Task :app:mergeExtDexDiagnostic
+> Task :app:mergeDiagnosticResources
+> Task :app:createDiagnosticCompatibleScreenManifests
+> Task :app:extractDeepLinksDiagnostic
+> Task :app:processDiagnosticMainManifest
+> Task :app:processDiagnosticManifest
+> Task :app:processDiagnosticManifestForPackage
+> Task :app:mergeDiagnosticJniLibFolders
+> Task :app:mergeDiagnosticNativeLibs
+
+> Task :app:stripDiagnosticDebugSymbols
+Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so, libdatastore_shared_counter.so. Run with --info option to learn more.
+
+> Task :app:validateSigningDiagnostic
+> Task :app:writeDiagnosticAppMetadata
+> Task :app:writeDiagnosticSigningConfigVersions
+> Task :app:processDiagnosticResources
+> Task :app:compileDebugKotlin
+> Task :app:compileDiagnosticKotlin
+
+> Task :app:compileDebugKotlin FAILED
+e: file:///app/applet/app/src/main/java/com/aistudio/moneydiary/mndytr/domain/service/DiagnosticService.kt:56:63 Unresolved reference 'IS_DIAGNOSTIC'.
+e: file:///app/applet/app/src/main/java/com/aistudio/moneydiary/mndytr/ui/dialogs/DiagnosticsDialog.kt:82:58 Unresolved reference 'IS_DIAGNOSTIC'.
+
+> Task :app:compileDiagnosticKotlin
+w: file:///app/applet/app/src/main/java/com/aistudio/moneydiary/mndytr/ui/dialogs/DiagnosticsDialog.kt:143:5 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+w: file:///app/applet/app/src/main/java/com/aistudio/moneydiary/mndytr/ui/screens/MoreScreen.kt:70:9 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 1m 43s
+56 actionable tasks: 56 executed
+Configuration cache entry stored.

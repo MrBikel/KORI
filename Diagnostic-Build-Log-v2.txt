@@ -1,0 +1,129 @@
+Calculating task graph as configuration cache cannot be reused because file 'app/build.gradle.kts' has changed.
+> Task :app:generateDiagnosticAssets UP-TO-DATE
+> Task :app:preBuild UP-TO-DATE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:preDebugUnitTestBuild UP-TO-DATE
+> Task :app:preDiagnosticBuild UP-TO-DATE
+> Task :app:clean
+> Task :app:generateDebugBuildConfig
+> Task :app:generateDebugResources
+> Task :app:javaPreCompileDebug
+> Task :app:packageDebugResources
+> Task :app:mapDebugSourceSetPaths
+> Task :app:checkDebugAarMetadata
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug
+> Task :app:processDebugNavigationResources
+> Task :app:parseDebugLocalResources
+> Task :app:processDebugMainManifest
+> Task :app:generateDebugRFile
+> Task :app:compileDebugNavigationResources
+> Task :app:processDebugManifest
+> Task :app:javaPreCompileDebugUnitTest
+> Task :app:processDebugManifestForPackage
+> Task :app:mergeDebugAssets
+> Task :app:mergeDiagnosticNativeDebugMetadata NO-SOURCE
+> Task :app:generateDiagnosticBuildConfig
+> Task :app:generateDiagnosticResources
+> Task :app:packageDiagnosticResources
+> Task :app:processDiagnosticNavigationResources
+> Task :app:processDebugUnitTestManifest
+> Task :app:parseDiagnosticLocalResources
+> Task :app:generateDiagnosticRFile
+> Task :app:javaPreCompileDiagnostic
+> Task :app:mergeDiagnosticAssets
+> Task :app:compressDiagnosticAssets
+> Task :app:checkDiagnosticDuplicateClasses
+> Task :app:desugarDiagnosticFileDependencies
+> Task :app:kspDebugKotlin
+Exception in thread "AWT-EventQueue-0" java.lang.NullPointerException: Cannot invoke "ksp.com.intellij.openapi.application.Application.getService(java.lang.Class)" because the return value of "ksp.com.intellij.openapi.application.ApplicationManager.getApplication()" is null
+	at ksp.com.intellij.openapi.fileEditor.FileDocumentManager.getInstance(FileDocumentManager.java:35)
+	at ksp.com.intellij.openapi.fileTypes.BinaryFileTypeDecompilers.lambda$notifyDecompilerSetChange$1(BinaryFileTypeDecompilers.java:29)
+	at java.desktop/java.awt.event.InvocationEvent.dispatch(InvocationEvent.java:318)
+	at java.desktop/java.awt.EventQueue.dispatchEventImpl(EventQueue.java:773)
+	at java.desktop/java.awt.EventQueue$4.run(EventQueue.java:720)
+	at java.desktop/java.awt.EventQueue$4.run(EventQueue.java:714)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
+	at java.base/java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(ProtectionDomain.java:87)
+	at java.desktop/java.awt.EventQueue.dispatchEvent(EventQueue.java:742)
+	at java.desktop/java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:203)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:124)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:113)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:109)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:101)
+	at java.desktop/java.awt.EventDispatchThread.run(EventDispatchThread.java:90)
+> Task :app:kspDiagnosticKotlin
+> Task :app:mergeDebugResources
+> Task :app:mergeExtDexDiagnostic
+> Task :app:mergeLibDexDiagnostic
+> Task :app:checkDiagnosticAarMetadata
+> Task :app:mapDiagnosticSourceSetPaths
+> Task :app:compileDiagnosticNavigationResources
+> Task :app:processDebugResources
+> Task :app:packageDebugUnitTestForUnitTest
+> Task :app:generateDebugUnitTestConfig
+> Task :app:createDiagnosticCompatibleScreenManifests
+> Task :app:extractDeepLinksDiagnostic
+> Task :app:processDiagnosticMainManifest
+> Task :app:processDiagnosticManifest
+> Task :app:processDiagnosticManifestForPackage
+> Task :app:mergeDiagnosticJniLibFolders
+> Task :app:mergeDiagnosticNativeLibs
+
+> Task :app:stripDiagnosticDebugSymbols
+Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so, libdatastore_shared_counter.so. Run with --info option to learn more.
+
+> Task :app:validateSigningDiagnostic
+> Task :app:writeDiagnosticAppMetadata
+> Task :app:writeDiagnosticSigningConfigVersions
+> Task :app:mergeDiagnosticResources
+> Task :app:processDiagnosticResources
+> Task :app:compileDebugKotlin
+> Task :app:compileDiagnosticKotlin
+w: file:///app/applet/app/src/main/java/com/aistudio/moneydiary/mndytr/ui/dialogs/DiagnosticsDialog.kt:143:5 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+w: file:///app/applet/app/src/main/java/com/aistudio/moneydiary/mndytr/ui/screens/MoreScreen.kt:70:9 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+
+> Task :app:processDiagnosticJavaRes
+
+> Task :app:compileDebugKotlin
+w: file:///app/applet/app/src/main/java/com/aistudio/moneydiary/mndytr/ui/dialogs/DiagnosticsDialog.kt:143:5 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+w: file:///app/applet/app/src/main/java/com/aistudio/moneydiary/mndytr/ui/screens/MoreScreen.kt:70:9 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+
+> Task :app:processDebugJavaRes
+> Task :app:compileDiagnosticJavaWithJavac
+> Task :app:compileDebugJavaWithJavac
+> Task :app:bundleDebugClassesToCompileJar
+> Task :app:bundleDebugClassesToRuntimeJar
+> Task :app:mergeDiagnosticJavaResource
+> Task :app:kspDebugUnitTestKotlin
+> Task :app:dexBuilderDiagnostic
+> Task :app:mergeProjectDexDiagnostic
+> Task :app:packageDiagnostic
+> Task :app:assembleDiagnostic
+> Task :app:createDiagnosticApkListingFileRedirect
+> Task :app:compileDebugUnitTestKotlin
+> Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processDebugUnitTestJavaRes
+
+> Task :app:testDebugUnitTest
+
+DiagnosticServiceTest > test report retention limit FAILED
+    java.lang.AssertionError at DiagnosticServiceTest.kt:58
+
+59 tests completed, 1 failed
+
+> Task :app:testDebugUnitTest FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:testDebugUnitTest'.
+> There were failing tests. See the report at: file:///app/applet/app/build/reports/tests/testDebugUnitTest/index.html
+
+* Try:
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+
+BUILD FAILED in 3m 4s
+71 actionable tasks: 71 executed
+Configuration cache entry stored.

@@ -1,0 +1,88 @@
+Calculating task graph as no cached configuration is available for tasks: clean testDebugUnitTest assembleDiagnosticDebug
+> Task :app:generateDiagnosticDebugAssets UP-TO-DATE
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:preDebugUnitTestBuild UP-TO-DATE
+> Task :app:preDiagnosticDebugBuild UP-TO-DATE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :app:clean
+> Task :app:generateDebugResources
+> Task :app:generateDebugBuildConfig
+> Task :app:javaPreCompileDebug
+> Task :app:packageDebugResources
+> Task :app:mapDebugSourceSetPaths
+> Task :app:checkDebugAarMetadata
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug
+> Task :app:processDebugNavigationResources
+> Task :app:processDebugMainManifest
+> Task :app:parseDebugLocalResources
+> Task :app:compileDebugNavigationResources
+> Task :app:processDebugManifest
+> Task :app:processDebugManifestForPackage
+> Task :app:generateDebugRFile
+> Task :app:javaPreCompileDebugUnitTest
+> Task :app:mergeDebugAssets
+> Task :app:mergeDiagnosticDebugNativeDebugMetadata NO-SOURCE
+> Task :app:generateDiagnosticDebugBuildConfig
+> Task :app:generateDiagnosticDebugResources
+> Task :app:packageDiagnosticDebugResources
+> Task :app:processDiagnosticDebugNavigationResources
+> Task :app:processDebugUnitTestManifest
+> Task :app:parseDiagnosticDebugLocalResources
+> Task :app:generateDiagnosticDebugRFile
+> Task :app:javaPreCompileDiagnosticDebug
+> Task :app:mergeDiagnosticDebugAssets
+> Task :app:compressDiagnosticDebugAssets
+> Task :app:checkDiagnosticDebugDuplicateClasses
+> Task :app:desugarDiagnosticDebugFileDependencies
+> Task :app:mergeDebugResources
+> Task :app:kspDiagnosticDebugKotlin
+> Task :app:kspDebugKotlin
+> Task :app:processDebugResources
+> Task :app:packageDebugUnitTestForUnitTest
+> Task :app:mergeExtDexDiagnosticDebug
+> Task :app:generateDebugUnitTestConfig
+> Task :app:mergeLibDexDiagnosticDebug
+> Task :app:checkDiagnosticDebugAarMetadata
+> Task :app:mapDiagnosticDebugSourceSetPaths
+> Task :app:compileDiagnosticDebugNavigationResources
+> Task :app:createDiagnosticDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDiagnosticDebug
+> Task :app:processDiagnosticDebugMainManifest
+> Task :app:processDiagnosticDebugManifest
+> Task :app:processDiagnosticDebugManifestForPackage
+> Task :app:mergeDiagnosticDebugJniLibFolders
+> Task :app:mergeDiagnosticDebugNativeLibs
+
+> Task :app:stripDiagnosticDebugDebugSymbols
+Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so, libdatastore_shared_counter.so. Run with --info option to learn more.
+
+> Task :app:validateSigningDiagnosticDebug
+> Task :app:writeDiagnosticDebugAppMetadata
+> Task :app:writeDiagnosticDebugSigningConfigVersions
+> Task :app:mergeDiagnosticDebugResources
+> Task :app:processDiagnosticDebugResources
+> Task :app:compileDebugKotlin
+> Task :app:compileDiagnosticDebugKotlin
+> Task :app:processDiagnosticDebugJavaRes
+> Task :app:processDebugJavaRes
+> Task :app:compileDiagnosticDebugJavaWithJavac
+> Task :app:compileDebugJavaWithJavac
+> Task :app:bundleDebugClassesToCompileJar
+> Task :app:bundleDebugClassesToRuntimeJar
+> Task :app:mergeDiagnosticDebugJavaResource
+> Task :app:kspDebugUnitTestKotlin
+> Task :app:dexBuilderDiagnosticDebug
+> Task :app:mergeProjectDexDiagnosticDebug
+> Task :app:packageDiagnosticDebug
+> Task :app:assembleDiagnosticDebug
+> Task :app:createDiagnosticDebugApkListingFileRedirect
+> Task :app:compileDebugUnitTestKotlin
+> Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processDebugUnitTestJavaRes
+> Task :app:testDebugUnitTest
+
+BUILD SUCCESSFUL in 2m 58s
+71 actionable tasks: 71 executed
+Configuration cache entry stored.
