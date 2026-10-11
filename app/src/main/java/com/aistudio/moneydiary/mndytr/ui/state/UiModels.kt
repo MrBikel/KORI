@@ -58,6 +58,18 @@ sealed class ActiveDialog {
     object Diagnostics : ActiveDialog()
     data class RestorePreview(val summary: com.aistudio.moneydiary.mndytr.domain.model.BackupSummary) : ActiveDialog()
     object BackupOptions : ActiveDialog()
+    object DebtAndReceivables : ActiveDialog()
+    object AddBorrowDebt : ActiveDialog()
+    object AddLendLoan : ActiveDialog()
+    object AddEarnedReceivable : ActiveDialog()
+    data class RecordDebtPayment(val debt: com.aistudio.moneydiary.mndytr.domain.model.DebtRecordItem) : ActiveDialog()
+    data class RecordReceivablePayment(val receivable: com.aistudio.moneydiary.mndytr.domain.model.EarnedReceivableItem) : ActiveDialog()
+    object ManageParties : ActiveDialog()
+    data class PartyProfile(val partyId: String) : ActiveDialog()
+    object GoogleCloudSettings : ActiveDialog()
+    object AiSettings : ActiveDialog()
+    object WeeklyReview : ActiveDialog()
+    object MonthlyReview : ActiveDialog()
 
     // Backward compatibility aliases for existing test suite
     object AddWorkAdvance : ActiveDialog()
@@ -168,5 +180,19 @@ data class DiaryUiState(
     val persons: List<PersonEntity> = emptyList(),
     val activeWorks: List<WorkDisplayItem> = emptyList(),
     val snackbarMessage: String? = null,
-    val lastAddedEventId: String? = null
+    val lastAddedEventId: String? = null,
+
+    // Debt, Receivables, Parties & Cloud
+    val parties: List<com.aistudio.moneydiary.mndytr.domain.model.PartyItem> = emptyList(),
+    val debtRecords: List<com.aistudio.moneydiary.mndytr.domain.model.DebtRecordItem> = emptyList(),
+    val earnedReceivables: List<com.aistudio.moneydiary.mndytr.domain.model.EarnedReceivableItem> = emptyList(),
+    val debtReceivablesSummary: com.aistudio.moneydiary.mndytr.domain.model.DebtReceivablesSummary = com.aistudio.moneydiary.mndytr.domain.model.DebtReceivablesSummary(),
+    val googleProfile: com.aistudio.moneydiary.mndytr.domain.service.GoogleAccountProfile = com.aistudio.moneydiary.mndytr.domain.service.GoogleAccountProfile("", null, false),
+    val isDriveAuthorized: Boolean = false,
+    val lastCloudBackupTimeEpochMs: Long = 0L,
+    val autoBackupFrequency: com.aistudio.moneydiary.mndytr.domain.service.AutoBackupFrequency = com.aistudio.moneydiary.mndytr.domain.service.AutoBackupFrequency.OFF,
+    val isAiEnabled: Boolean = false,
+    val aiDataSharingPreference: com.aistudio.moneydiary.mndytr.domain.service.AiDataSharingPreference = com.aistudio.moneydiary.mndytr.domain.service.AiDataSharingPreference.NEVER_SHARE,
+    val yesterdayHasNoEntries: Boolean = false,
+    val upcomingDebtNotice: String? = null
 )

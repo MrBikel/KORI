@@ -45,6 +45,8 @@ fun MoreScreen(
     onPrepareClipboard: (String) -> Unit,
     onShareBackupFile: (String) -> Unit,
     onDismissDialog: () -> Unit,
+    onDebtReceivablesClick: () -> Unit = {},
+    onPartiesClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -122,6 +124,24 @@ fun MoreScreen(
                         subtitle = "উপার্জনের খাতসমূহ সাজানো ও যোগ করা",
                         onClick = onManageCategoriesClick,
                         tag = "income_categories_item"
+                    )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
+                    MoreMenuItem(
+                        icon = Icons.Default.Handshake,
+                        iconTint = MaterialTheme.colorScheme.primary,
+                        title = "ঋণ ও পাওনা",
+                        subtitle = "হাওলাত, ধার দেওয়া ও কাজের বকেয়া পাওনা",
+                        onClick = onDebtReceivablesClick,
+                        tag = "debts_and_receivables_item"
+                    )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
+                    MoreMenuItem(
+                        icon = Icons.Default.People,
+                        iconTint = MaterialTheme.colorScheme.secondary,
+                        title = "ব্যক্তি ও পক্ষ",
+                        subtitle = "লেনদেনের সংশ্লিষ্ট ব্যক্তি বা প্রতিষ্ঠান",
+                        onClick = onPartiesClick,
+                        tag = "parties_and_persons_item"
                     )
                     HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
                     MoreMenuItem(

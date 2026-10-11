@@ -271,7 +271,7 @@ class DiagnosticServiceTest {
     @Test
     fun test18_roomVersionRemains1() {
         val db = AppDatabase.getInstance(context)
-        assertEquals(2, db.openHelper.readableDatabase.version)
+        assertEquals(3, db.openHelper.readableDatabase.version)
     }
 
     // 19. Entity count is 15

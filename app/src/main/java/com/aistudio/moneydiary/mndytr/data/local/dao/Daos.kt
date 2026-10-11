@@ -5,21 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import com.aistudio.moneydiary.mndytr.data.local.entity.AccountEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.AppSettingEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.AttachmentEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.AuditLogEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.BackupJobEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.BackupMetadataEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.CategoryEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.FrequentShortcutEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.FrugalityGoalEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.PayableEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.PersonEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.ReceivableEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.SavingsGoalEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.TransactionEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.WorkRecordEntity
+import com.aistudio.moneydiary.mndytr.data.local.entity.*
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -349,3 +335,136 @@ interface FrugalityGoalDao {
     @Query("UPDATE frugality_goals SET isDeleted = 1, updatedAtEpochMs = :timestamp WHERE id = :id")
     fun softDelete(id: String, timestamp: Long = System.currentTimeMillis())
 }
+
+@Dao
+interface PartyDao {
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    fun insert(party: PartyEntity)
+
+    @Update
+    fun update(party: PartyEntity)
+
+    @Query("SELECT * FROM parties WHERE id = :id AND isDeleted = 0")
+    fun getById(id: String): PartyEntity?
+
+    @Query("SELECT * FROM parties WHERE isDeleted = 0 AND isArchived = 0 ORDER BY displayName ASC")
+    fun getAllActive(): List<PartyEntity>
+
+    @Query("SELECT * FROM parties WHERE isDeleted = 0 AND isArchived = 0 ORDER BY displayName ASC")
+    fun observeAllActive(): Flow<List<PartyEntity>>
+
+    @Query("SELECT * FROM parties WHERE displayName = :name AND isDeleted = 0 LIMIT 1")
+    fun findByName(name: String): PartyEntity?
+
+    @Query("UPDATE parties SET isArchived = :isArchived, updatedAtEpochMs = :timestamp WHERE id = :id")
+    fun setArchived(id: String, isArchived: Boolean, timestamp: Long = System.currentTimeMillis())
+
+    @Query("UPDATE parties SET isDeleted = 1, updatedAtEpochMs = :timestamp WHERE id = :id")
+    fun softDelete(id: String, timestamp: Long = System.currentTimeMillis())
+}
+
+@Dao
+interface DebtRecordDao {
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    fun insert(record: DebtRecordEntity)
+
+    @Update
+    fun update(record: DebtRecordEntity)
+
+    @Query("SELECT * FROM debt_records WHERE id = :id AND isDeleted = 0")
+    fun getById(id: String): DebtRecordEntity?
+
+    @Query("SELECT * FROM debt_records WHERE isDeleted = 0 ORDER BY occurredAtEpochMs DESC")
+    fun getAllActive(): List<DebtRecordEntity>
+
+    @Query("SELECT * FROM debt_records WHERE isDeleted = 0 ORDER BY occurredAtEpochMs DESC")
+    fun observeAll(): Flow<List<DebtRecordEntity>>
+
+    @Query("SELECT * FROM debt_records WHERE partyId = :partyId AND isDeleted = 0 ORDER BY occurredAtEpochMs DESC")
+    fun getByPartyId(partyId: String): List<DebtRecordEntity>
+
+    @Query("SELECT * FROM debt_records WHERE type = :type AND isDeleted = 0 ORDER BY occurredAtEpochMs DESC")
+    fun getByType(type: String): List<DebtRecordEntity>
+
+    @Query("UPDATE debt_records SET status = :status, updatedAtEpochMs = :timestamp WHERE id = :id")
+    fun updateStatus(id: String, status: String, timestamp: Long = System.currentTimeMillis())
+
+    @Query("UPDATE debt_records SET isDeleted = 1, updatedAtEpochMs = :timestamp WHERE id = :id")
+    fun softDelete(id: String, timestamp: Long = System.currentTimeMillis())
+}
+
+@Dao
+interface DebtPaymentDao {
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    fun insert(payment: DebtPaymentEntity)
+
+    @Update
+    fun update(payment: DebtPaymentEntity)
+
+    @Query("SELECT * FROM debt_payments WHERE id = :id")
+    fun getById(id: String): DebtPaymentEntity?
+
+    @Query("SELECT * FROM debt_payments WHERE debtId = :debtId AND isReversed = 0 ORDER BY occurredAtEpochMs ASC")
+    fun getPaymentsForDebt(debtId: String): List<DebtPaymentEntity>
+
+    @Query("SELECT * FROM debt_payments WHERE debtId = :debtId AND isReversed = 0 ORDER BY occurredAtEpochMs ASC")
+    fun observePaymentsForDebt(debtId: String): Flow<List<DebtPaymentEntity>>
+
+    @Query("SELECT * FROM debt_payments WHERE isReversed = 0")
+    fun getAllNonReversed(): List<DebtPaymentEntity>
+
+    @Query("UPDATE debt_payments SET isReversed = 1, updatedAtEpochMs = :timestamp WHERE id = :id")
+    fun markReversed(id: String, timestamp: Long = System.currentTimeMillis())
+}
+
+@Dao
+interface EarnedReceivableDao {
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    fun insert(receivable: EarnedReceivableEntity)
+
+    @Update
+    fun update(receivable: EarnedReceivableEntity)
+
+    @Query("SELECT * FROM earned_receivables WHERE id = :id AND isDeleted = 0")
+    fun getById(id: String): EarnedReceivableEntity?
+
+    @Query("SELECT * FROM earned_receivables WHERE isDeleted = 0 ORDER BY occurredAtEpochMs DESC")
+    fun getAllActive(): List<EarnedReceivableEntity>
+
+    @Query("SELECT * FROM earned_receivables WHERE isDeleted = 0 ORDER BY occurredAtEpochMs DESC")
+    fun observeAll(): Flow<List<EarnedReceivableEntity>>
+
+    @Query("SELECT * FROM earned_receivables WHERE partyId = :partyId AND isDeleted = 0 ORDER BY occurredAtEpochMs DESC")
+    fun getByPartyId(partyId: String): List<EarnedReceivableEntity>
+
+    @Query("UPDATE earned_receivables SET status = :status, updatedAtEpochMs = :timestamp WHERE id = :id")
+    fun updateStatus(id: String, status: String, timestamp: Long = System.currentTimeMillis())
+
+    @Query("UPDATE earned_receivables SET isDeleted = 1, updatedAtEpochMs = :timestamp WHERE id = :id")
+    fun softDelete(id: String, timestamp: Long = System.currentTimeMillis())
+}
+
+@Dao
+interface ReceivablePaymentDao {
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    fun insert(payment: ReceivablePaymentEntity)
+
+    @Update
+    fun update(payment: ReceivablePaymentEntity)
+
+    @Query("SELECT * FROM receivable_payments WHERE id = :id")
+    fun getById(id: String): ReceivablePaymentEntity?
+
+    @Query("SELECT * FROM receivable_payments WHERE receivableId = :receivableId AND isReversed = 0 ORDER BY occurredAtEpochMs ASC")
+    fun getPaymentsForReceivable(receivableId: String): List<ReceivablePaymentEntity>
+
+    @Query("SELECT * FROM receivable_payments WHERE receivableId = :receivableId AND isReversed = 0 ORDER BY occurredAtEpochMs ASC")
+    fun observePaymentsForReceivable(receivableId: String): Flow<List<ReceivablePaymentEntity>>
+
+    @Query("SELECT * FROM receivable_payments WHERE isReversed = 0")
+    fun getAllNonReversed(): List<ReceivablePaymentEntity>
+
+    @Query("UPDATE receivable_payments SET isReversed = 1, updatedAtEpochMs = :timestamp WHERE id = :id")
+    fun markReversed(id: String, timestamp: Long = System.currentTimeMillis())
+}
+

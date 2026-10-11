@@ -6,36 +6,8 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.aistudio.moneydiary.mndytr.data.local.dao.AccountDao
-import com.aistudio.moneydiary.mndytr.data.local.dao.AppSettingDao
-import com.aistudio.moneydiary.mndytr.data.local.dao.AttachmentDao
-import com.aistudio.moneydiary.mndytr.data.local.dao.AuditDao
-import com.aistudio.moneydiary.mndytr.data.local.dao.BackupJobDao
-import com.aistudio.moneydiary.mndytr.data.local.dao.BackupMetadataDao
-import com.aistudio.moneydiary.mndytr.data.local.dao.CategoryDao
-import com.aistudio.moneydiary.mndytr.data.local.dao.FrequentShortcutDao
-import com.aistudio.moneydiary.mndytr.data.local.dao.FrugalityGoalDao
-import com.aistudio.moneydiary.mndytr.data.local.dao.LedgerEventDao
-import com.aistudio.moneydiary.mndytr.data.local.dao.PayableDao
-import com.aistudio.moneydiary.mndytr.data.local.dao.PersonDao
-import com.aistudio.moneydiary.mndytr.data.local.dao.ReceivableDao
-import com.aistudio.moneydiary.mndytr.data.local.dao.SavingsGoalDao
-import com.aistudio.moneydiary.mndytr.data.local.dao.WorkDao
-import com.aistudio.moneydiary.mndytr.data.local.entity.AccountEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.AppSettingEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.AttachmentEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.AuditLogEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.BackupJobEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.BackupMetadataEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.CategoryEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.FrequentShortcutEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.FrugalityGoalEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.PayableEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.PersonEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.ReceivableEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.SavingsGoalEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.TransactionEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.WorkRecordEntity
+import com.aistudio.moneydiary.mndytr.data.local.dao.*
+import com.aistudio.moneydiary.mndytr.data.local.entity.*
 
 @Database(
     entities = [
@@ -53,9 +25,14 @@ import com.aistudio.moneydiary.mndytr.data.local.entity.WorkRecordEntity
         BackupMetadataEntity::class,
         AppSettingEntity::class,
         AuditLogEntity::class,
-        FrugalityGoalEntity::class
+        FrugalityGoalEntity::class,
+        PartyEntity::class,
+        DebtRecordEntity::class,
+        DebtPaymentEntity::class,
+        EarnedReceivableEntity::class,
+        ReceivablePaymentEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -75,6 +52,11 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun appSettingDao(): AppSettingDao
     abstract fun auditDao(): AuditDao
     abstract fun frugalityGoalDao(): FrugalityGoalDao
+    abstract fun partyDao(): PartyDao
+    abstract fun debtRecordDao(): DebtRecordDao
+    abstract fun debtPaymentDao(): DebtPaymentDao
+    abstract fun earnedReceivableDao(): EarnedReceivableDao
+    abstract fun receivablePaymentDao(): ReceivablePaymentDao
 
     companion object {
         const val DATABASE_NAME = "my_money_diary.db"
@@ -111,6 +93,133 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // 1. Parties table
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `parties` (
+                        `id` TEXT NOT NULL,
+                        `displayName` TEXT NOT NULL,
+                        `partyType` TEXT NOT NULL,
+                        `phone` TEXT,
+                        `email` TEXT,
+                        `note` TEXT,
+                        `isArchived` INTEGER NOT NULL,
+                        `isDeleted` INTEGER NOT NULL,
+                        `createdAtEpochMs` INTEGER NOT NULL,
+                        `updatedAtEpochMs` INTEGER NOT NULL,
+                        PRIMARY KEY(`id`)
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_parties_displayName` ON `parties` (`displayName`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_parties_partyType` ON `parties` (`partyType`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_parties_isArchived` ON `parties` (`isArchived`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_parties_isDeleted` ON `parties` (`isDeleted`)")
+
+                // 2. Debt Records table
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `debt_records` (
+                        `id` TEXT NOT NULL,
+                        `partyId` TEXT NOT NULL,
+                        `type` TEXT NOT NULL,
+                        `principalPaisa` INTEGER NOT NULL,
+                        `occurredAtEpochMs` INTEGER NOT NULL,
+                        `dueAtEpochMs` INTEGER,
+                        `notes` TEXT,
+                        `status` TEXT NOT NULL,
+                        `isDeleted` INTEGER NOT NULL,
+                        `createdAtEpochMs` INTEGER NOT NULL,
+                        `updatedAtEpochMs` INTEGER NOT NULL,
+                        PRIMARY KEY(`id`),
+                        FOREIGN KEY(`partyId`) REFERENCES `parties`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_debt_records_partyId` ON `debt_records` (`partyId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_debt_records_type` ON `debt_records` (`type`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_debt_records_status` ON `debt_records` (`status`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_debt_records_occurredAtEpochMs` ON `debt_records` (`occurredAtEpochMs`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_debt_records_isDeleted` ON `debt_records` (`isDeleted`)")
+
+                // 3. Debt Payments table
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `debt_payments` (
+                        `id` TEXT NOT NULL,
+                        `debtId` TEXT NOT NULL,
+                        `amountPaisa` INTEGER NOT NULL,
+                        `occurredAtEpochMs` INTEGER NOT NULL,
+                        `notes` TEXT,
+                        `isReversed` INTEGER NOT NULL,
+                        `createdAtEpochMs` INTEGER NOT NULL,
+                        `updatedAtEpochMs` INTEGER NOT NULL,
+                        PRIMARY KEY(`id`),
+                        FOREIGN KEY(`debtId`) REFERENCES `debt_records`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_debt_payments_debtId` ON `debt_payments` (`debtId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_debt_payments_occurredAtEpochMs` ON `debt_payments` (`occurredAtEpochMs`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_debt_payments_isReversed` ON `debt_payments` (`isReversed`)")
+
+                // 4. Earned Receivables table
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `earned_receivables` (
+                        `id` TEXT NOT NULL,
+                        `partyId` TEXT NOT NULL,
+                        `title` TEXT NOT NULL,
+                        `agreedAmountPaisa` INTEGER NOT NULL,
+                        `occurredAtEpochMs` INTEGER NOT NULL,
+                        `dueAtEpochMs` INTEGER,
+                        `notes` TEXT,
+                        `status` TEXT NOT NULL,
+                        `isDeleted` INTEGER NOT NULL,
+                        `createdAtEpochMs` INTEGER NOT NULL,
+                        `updatedAtEpochMs` INTEGER NOT NULL,
+                        PRIMARY KEY(`id`),
+                        FOREIGN KEY(`partyId`) REFERENCES `parties`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_earned_receivables_partyId` ON `earned_receivables` (`partyId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_earned_receivables_status` ON `earned_receivables` (`status`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_earned_receivables_occurredAtEpochMs` ON `earned_receivables` (`occurredAtEpochMs`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_earned_receivables_isDeleted` ON `earned_receivables` (`isDeleted`)")
+
+                // 5. Receivable Payments table
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `receivable_payments` (
+                        `id` TEXT NOT NULL,
+                        `receivableId` TEXT NOT NULL,
+                        `amountPaisa` INTEGER NOT NULL,
+                        `occurredAtEpochMs` INTEGER NOT NULL,
+                        `notes` TEXT,
+                        `isReversed` INTEGER NOT NULL,
+                        `createdAtEpochMs` INTEGER NOT NULL,
+                        `updatedAtEpochMs` INTEGER NOT NULL,
+                        PRIMARY KEY(`id`),
+                        FOREIGN KEY(`receivableId`) REFERENCES `earned_receivables`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_receivable_payments_receivableId` ON `receivable_payments` (`receivableId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_receivable_payments_occurredAtEpochMs` ON `receivable_payments` (`occurredAtEpochMs`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_receivable_payments_isReversed` ON `receivable_payments` (`isReversed`)")
+
+                // 6. Alter transactions table
+                db.execSQL("ALTER TABLE `transactions` ADD COLUMN `partyId` TEXT")
+                db.execSQL("ALTER TABLE `transactions` ADD COLUMN `debtRecordId` TEXT")
+                db.execSQL("ALTER TABLE `transactions` ADD COLUMN `earnedReceivableId` TEXT")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_transactions_partyId` ON `transactions` (`partyId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_transactions_debtRecordId` ON `transactions` (`debtRecordId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_transactions_earnedReceivableId` ON `transactions` (`earnedReceivableId`)")
+
+                // 7. Migrate existing persons to parties
+                db.execSQL("""
+                    INSERT OR IGNORE INTO `parties` (`id`, `displayName`, `partyType`, `phone`, `email`, `note`, `isArchived`, `isDeleted`, `createdAtEpochMs`, `updatedAtEpochMs`)
+                    SELECT `id`, `name`, `personType`, `phoneNumber`, `email`, `notes`, 0, `isDeleted`, `createdAtEpochMs`, `updatedAtEpochMs` FROM `persons`
+                """.trimIndent())
+
+                // 8. Link existing personId on transactions to partyId
+                db.execSQL("UPDATE `transactions` SET `partyId` = `personId` WHERE `personId` IS NOT NULL AND `partyId` IS NULL")
+            }
+        }
+
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
@@ -121,7 +230,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     DATABASE_NAME
                 )
-                    .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .fallbackToDestructiveMigration(false)
                     .build()
                 INSTANCE = instance

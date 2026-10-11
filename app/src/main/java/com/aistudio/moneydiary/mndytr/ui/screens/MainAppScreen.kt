@@ -210,7 +210,9 @@ fun MainAppScreen(
                         onExportBackup = { viewModel.exportLocalBackup(context, it) },
                         onPrepareClipboard = { viewModel.prepareBackupForClipboard(context, it) },
                         onShareBackupFile = { viewModel.shareBackupAsFile(context, it) },
-                        onDismissDialog = { viewModel.dismissDialog() }
+                        onDismissDialog = { viewModel.dismissDialog() },
+                        onDebtReceivablesClick = { viewModel.openDialog(ActiveDialog.DebtAndReceivables) },
+                        onPartiesClick = { viewModel.openDialog(ActiveDialog.DebtAndReceivables) }
                     )
                 }
             }
@@ -400,6 +402,86 @@ fun MainAppScreen(
                 DiagnosticsDialog(
                     onDismiss = { viewModel.dismissDialog() }
                 )
+            }
+
+            is ActiveDialog.DebtAndReceivables -> {
+                DebtReceivablesScreen(
+                    state = state,
+                    onBackClick = { viewModel.dismissDialog() },
+                    onBorrowClick = { viewModel.openDialog(ActiveDialog.AddBorrowDebt) },
+                    onLendClick = { viewModel.openDialog(ActiveDialog.AddLendLoan) },
+                    onAddEarnedClick = { viewModel.openDialog(ActiveDialog.AddEarnedReceivable) },
+                    onRepayDebtClick = { viewModel.openDialog(ActiveDialog.RecordDebtPayment(it)) },
+                    onCollectLoanClick = { viewModel.openDialog(ActiveDialog.RecordDebtPayment(it)) },
+                    onCollectReceivableClick = { viewModel.openDialog(ActiveDialog.RecordReceivablePayment(it)) },
+                    onPartyClick = { viewModel.openDialog(ActiveDialog.PartyProfile(it)) }
+                )
+            }
+
+            is ActiveDialog.AddBorrowDebt -> {
+                AddBorrowDebtDialog(
+                    onConfirm = { name, amount, note ->
+                        viewModel.borrowMoney(name, amount, notes = note)
+                    },
+                    onDismiss = { viewModel.dismissDialog() }
+                )
+            }
+
+            is ActiveDialog.AddLendLoan -> {
+                AddLendLoanDialog(
+                    onConfirm = { name, amount, note ->
+                        viewModel.lendMoney(name, amount, notes = note)
+                    },
+                    onDismiss = { viewModel.dismissDialog() }
+                )
+            }
+
+            is ActiveDialog.AddEarnedReceivable -> {
+                AddEarnedReceivableDialog(
+                    onConfirm = { name, title, amount, note ->
+                        viewModel.createEarnedReceivable(name, title, amount, notes = note)
+                    },
+                    onDismiss = { viewModel.dismissDialog() }
+                )
+            }
+
+            is ActiveDialog.RecordDebtPayment -> {
+                val item = active.debt
+                RecordDebtPaymentDialog(
+                    item = item,
+                    isLoanRecovery = item.type != "BORROWED",
+                    onConfirm = { amt, note ->
+                        if (item.type == "BORROWED") {
+                            viewModel.repayDebt(item.id, amt, notes = note)
+                        } else {
+                            viewModel.collectLoanRepayment(item.id, amt, notes = note)
+                        }
+                    },
+                    onDismiss = { viewModel.dismissDialog() }
+                )
+            }
+
+            is ActiveDialog.RecordReceivablePayment -> {
+                RecordReceivablePaymentDialog(
+                    item = active.receivable,
+                    onConfirm = { amt, note ->
+                        viewModel.recordReceivablePayment(active.receivable.id, amt, notes = note)
+                    },
+                    onDismiss = { viewModel.dismissDialog() }
+                )
+            }
+
+            is ActiveDialog.PartyProfile -> {
+                val prof = remember(active.partyId) { viewModel.getPartyProfile(active.partyId) }
+                if (prof != null) {
+                    PartyProfileDialog(
+                        profile = prof,
+                        useBengaliDigits = state.useBengaliDigits,
+                        onDismiss = { viewModel.dismissDialog() }
+                    )
+                } else {
+                    viewModel.dismissDialog()
+                }
             }
 
             else -> { /* None */ }

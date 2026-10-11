@@ -1,20 +1,8 @@
 package com.aistudio.moneydiary.mndytr.domain.service
 
 import com.aistudio.moneydiary.mndytr.data.local.database.AppDatabase
-import com.aistudio.moneydiary.mndytr.data.local.entity.AuditLogEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.PayableEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.ReceivableEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.TransactionEntity
-import com.aistudio.moneydiary.mndytr.domain.model.AuditActionType
-import com.aistudio.moneydiary.mndytr.domain.model.ConfirmationStatus
-import com.aistudio.moneydiary.mndytr.domain.model.LedgerEventCode
-import com.aistudio.moneydiary.mndytr.domain.model.LedgerEventKind
-import com.aistudio.moneydiary.mndytr.domain.model.MoneyPaisa
-import com.aistudio.moneydiary.mndytr.domain.model.PaymentStatus
-import com.aistudio.moneydiary.mndytr.domain.model.PayableStatus
-import com.aistudio.moneydiary.mndytr.domain.model.ReceivableStatus
-import com.aistudio.moneydiary.mndytr.domain.model.WorkStatus
-import com.aistudio.moneydiary.mndytr.domain.model.WorkFinancialProjection
+import com.aistudio.moneydiary.mndytr.data.local.entity.*
+import com.aistudio.moneydiary.mndytr.domain.model.*
 import com.aistudio.moneydiary.mndytr.domain.service.DiagnosticService
 import java.util.UUID
 
@@ -31,6 +19,11 @@ class FinancialService(private val db: AppDatabase) {
     private val receivableDao = db.receivableDao()
     private val payableDao = db.payableDao()
     private val auditDao = db.auditDao()
+    private val partyDao = db.partyDao()
+    private val debtRecordDao = db.debtRecordDao()
+    private val debtPaymentDao = db.debtPaymentDao()
+    private val earnedReceivableDao = db.earnedReceivableDao()
+    private val receivablePaymentDao = db.receivablePaymentDao()
 
     private fun String?.blankToNull(): String? = this?.takeIf { it.isNotBlank() }
 
@@ -1063,5 +1056,510 @@ class FinancialService(private val db: AppDatabase) {
         } catch (_: Exception) {
             // Non-critical audit logging failure must never fail the transaction
         }
+    }
+
+    // --- PARTY METHODS ---
+    fun createOrGetParty(
+        displayName: String,
+        partyType: PartyType = PartyType.PERSON,
+        phone: String? = null,
+        email: String? = null,
+        note: String? = null
+    ): FinancialResult<PartyEntity> {
+        val trimmedName = displayName.trim()
+        if (trimmedName.isBlank()) {
+            return FinancialResult.Error("ব্যক্তি বা প্রতিষ্ঠানের নাম খালি রাখা যাবে না।")
+        }
+        val existing = partyDao.findByName(trimmedName)
+        if (existing != null) {
+            return FinancialResult.Success(existing)
+        }
+        val party = PartyEntity(
+            displayName = trimmedName,
+            partyType = partyType.name,
+            phone = phone?.trim()?.blankToNull(),
+            email = email?.trim()?.blankToNull(),
+            note = note?.trim()?.blankToNull()
+        )
+        partyDao.insert(party)
+        logAudit("parties", party.id, AuditActionType.INSERT, null, party.toString(), "Party created: $trimmedName")
+        return FinancialResult.Success(party)
+    }
+
+    fun getAllParties(): List<PartyItem> {
+        return partyDao.getAllActive().map {
+            PartyItem(
+                id = it.id,
+                displayName = it.displayName,
+                partyType = it.partyType,
+                phone = it.phone,
+                email = it.email,
+                note = it.note,
+                isArchived = it.isArchived
+            )
+        }
+    }
+
+    // --- DEBT: BORROWED (আমি ঋণ নিয়েছি) ---
+    fun borrowMoney(
+        partyId: String,
+        principalPaisa: Long,
+        occurredAtEpochMs: Long = System.currentTimeMillis(),
+        dueAtEpochMs: Long? = null,
+        notes: String? = null
+    ): FinancialResult<DebtRecordEntity> {
+        if (principalPaisa <= 0) return FinancialResult.Error("ঋণের পরিমাণ শূন্য বা ঋণাত্মক হতে পারে না।")
+        val party = partyDao.getById(partyId) ?: return FinancialResult.Error("পক্ষ বা ব্যক্তি খুঁজে পাওয়া যায়নি।")
+
+        return try {
+            db.runInTransaction<FinancialResult<DebtRecordEntity>> {
+                val record = DebtRecordEntity(
+                    partyId = partyId,
+                    type = DebtType.BORROWED.name,
+                    principalPaisa = principalPaisa,
+                    occurredAtEpochMs = occurredAtEpochMs,
+                    dueAtEpochMs = dueAtEpochMs,
+                    notes = notes?.trim()?.blankToNull(),
+                    status = DebtRecordStatus.ACTIVE.name
+                )
+                debtRecordDao.insert(record)
+
+                // Cash inflow transaction (NOT ordinary income)
+                val tx = TransactionEntity(
+                    eventCode = LedgerEventCode.TX_07_BORROWED_MONEY.name,
+                    eventKind = LedgerEventKind.CASH_EVENT.name,
+                    amountPaisa = principalPaisa,
+                    partyId = partyId,
+                    debtRecordId = record.id,
+                    description = "ঋণ গ্রহণ: ${party.displayName}",
+                    notes = notes?.trim()?.blankToNull(),
+                    eventTimestampEpochMs = occurredAtEpochMs,
+                    confirmationStatus = ConfirmationStatus.CONFIRMED.name
+                )
+                ledgerEventDao.insert(tx)
+
+                logAudit("debt_records", record.id, AuditActionType.INSERT, null, record.toString(), "Debt borrowed: ${party.displayName}")
+                FinancialResult.Success(record)
+            }
+        } catch (e: Exception) {
+            FinancialResult.Error("ঋণ গ্রহণ সংরক্ষণ করা যায়নি।", e)
+        }
+    }
+
+    fun repayDebt(
+        debtId: String,
+        amountPaisa: Long,
+        occurredAtEpochMs: Long = System.currentTimeMillis(),
+        notes: String? = null
+    ): FinancialResult<DebtPaymentEntity> {
+        if (amountPaisa <= 0) return FinancialResult.Error("পরিশোধের পরিমাণ শূন্য বা ঋণাত্মক হতে পারে না।")
+        val debt = debtRecordDao.getById(debtId) ?: return FinancialResult.Error("ঋণের হিসাব পাওয়া যায়নি।")
+        if (debt.type != DebtType.BORROWED.name) return FinancialResult.Error("এটি ঋণ গ্রহণের হিসাব নয়।")
+
+        val payments = debtPaymentDao.getPaymentsForDebt(debtId)
+        val alreadyRepaid = payments.sumOf { it.amountPaisa }
+        val remaining = debt.principalPaisa - alreadyRepaid
+        if (amountPaisa > remaining) {
+            return FinancialResult.Error("পরিশোধের পরিমাণ বাকি ঋণের চেয়ে বেশি হতে পারে না (বাকি: ৳${remaining / 100})।")
+        }
+
+        return try {
+            db.runInTransaction<FinancialResult<DebtPaymentEntity>> {
+                val payment = DebtPaymentEntity(
+                    debtId = debtId,
+                    amountPaisa = amountPaisa,
+                    occurredAtEpochMs = occurredAtEpochMs,
+                    notes = notes?.trim()?.blankToNull()
+                )
+                debtPaymentDao.insert(payment)
+
+                val party = partyDao.getById(debt.partyId)
+                val partyName = party?.displayName ?: "পক্ষ"
+
+                // Cash outflow transaction (NOT ordinary expense)
+                val tx = TransactionEntity(
+                    eventCode = LedgerEventCode.TX_09_DEBT_REPAID.name,
+                    eventKind = LedgerEventKind.CASH_EVENT.name,
+                    amountPaisa = amountPaisa,
+                    partyId = debt.partyId,
+                    debtRecordId = debtId,
+                    description = "ঋণ পরিশোধ: $partyName",
+                    notes = notes?.trim()?.blankToNull(),
+                    eventTimestampEpochMs = occurredAtEpochMs,
+                    confirmationStatus = ConfirmationStatus.CONFIRMED.name
+                )
+                ledgerEventDao.insert(tx)
+
+                val newRemaining = remaining - amountPaisa
+                val newStatus = if (newRemaining == 0L) DebtRecordStatus.SETTLED.name else DebtRecordStatus.PARTIALLY_SETTLED.name
+                debtRecordDao.updateStatus(debtId, newStatus)
+
+                logAudit("debt_payments", payment.id, AuditActionType.INSERT, null, payment.toString(), "Debt repayment: $partyName")
+                FinancialResult.Success(payment)
+            }
+        } catch (e: Exception) {
+            FinancialResult.Error("ঋণ পরিশোধ সংরক্ষণ করা যায়নি।", e)
+        }
+    }
+
+    // --- LOAN RECEIVABLE: LENT (কাউকে ধার দেওয়া) ---
+    fun lendMoney(
+        partyId: String,
+        principalPaisa: Long,
+        occurredAtEpochMs: Long = System.currentTimeMillis(),
+        dueAtEpochMs: Long? = null,
+        notes: String? = null
+    ): FinancialResult<DebtRecordEntity> {
+        if (principalPaisa <= 0) return FinancialResult.Error("ধার দেওয়ার পরিমাণ শূন্য বা ঋণাত্মক হতে পারে না।")
+        val party = partyDao.getById(partyId) ?: return FinancialResult.Error("পক্ষ বা ব্যক্তি খুঁজে পাওয়া যায়নি।")
+
+        return try {
+            db.runInTransaction<FinancialResult<DebtRecordEntity>> {
+                val record = DebtRecordEntity(
+                    partyId = partyId,
+                    type = DebtType.LENT.name,
+                    principalPaisa = principalPaisa,
+                    occurredAtEpochMs = occurredAtEpochMs,
+                    dueAtEpochMs = dueAtEpochMs,
+                    notes = notes?.trim()?.blankToNull(),
+                    status = DebtRecordStatus.ACTIVE.name
+                )
+                debtRecordDao.insert(record)
+
+                // Cash outflow transaction (NOT ordinary expense)
+                val tx = TransactionEntity(
+                    eventCode = LedgerEventCode.TX_10_LENT_MONEY.name,
+                    eventKind = LedgerEventKind.CASH_EVENT.name,
+                    amountPaisa = principalPaisa,
+                    partyId = partyId,
+                    debtRecordId = record.id,
+                    description = "ধার প্রদান: ${party.displayName}",
+                    notes = notes?.trim()?.blankToNull(),
+                    eventTimestampEpochMs = occurredAtEpochMs,
+                    confirmationStatus = ConfirmationStatus.CONFIRMED.name
+                )
+                ledgerEventDao.insert(tx)
+
+                logAudit("debt_records", record.id, AuditActionType.INSERT, null, record.toString(), "Money lent: ${party.displayName}")
+                FinancialResult.Success(record)
+            }
+        } catch (e: Exception) {
+            FinancialResult.Error("ধার দেওয়ার তথ্য সংরক্ষণ করা যায়নি।", e)
+        }
+    }
+
+    fun collectLoanRepayment(
+        debtId: String,
+        amountPaisa: Long,
+        occurredAtEpochMs: Long = System.currentTimeMillis(),
+        notes: String? = null
+    ): FinancialResult<DebtPaymentEntity> {
+        if (amountPaisa <= 0) return FinancialResult.Error("টাকা আদায়ের পরিমাণ শূন্য বা ঋণাত্মক হতে পারে না।")
+        val debt = debtRecordDao.getById(debtId) ?: return FinancialResult.Error("ধারের হিসাব পাওয়া যায়নি।")
+        if (debt.type != DebtType.LENT.name) return FinancialResult.Error("এটি কাউকে ধার দেওয়ার হিসাব নয়।")
+
+        val payments = debtPaymentDao.getPaymentsForDebt(debtId)
+        val alreadyCollected = payments.sumOf { it.amountPaisa }
+        val remaining = debt.principalPaisa - alreadyCollected
+        if (amountPaisa > remaining) {
+            return FinancialResult.Error("আদায়ের পরিমাণ বাকি ধারের চেয়ে বেশি হতে পারে না (বাকি: ৳${remaining / 100})।")
+        }
+
+        return try {
+            db.runInTransaction<FinancialResult<DebtPaymentEntity>> {
+                val payment = DebtPaymentEntity(
+                    debtId = debtId,
+                    amountPaisa = amountPaisa,
+                    occurredAtEpochMs = occurredAtEpochMs,
+                    notes = notes?.trim()?.blankToNull()
+                )
+                debtPaymentDao.insert(payment)
+
+                val party = partyDao.getById(debt.partyId)
+                val partyName = party?.displayName ?: "পক্ষ"
+
+                // Cash inflow transaction (NOT new income)
+                val tx = TransactionEntity(
+                    eventCode = LedgerEventCode.TX_11_LOAN_COLLECTED.name,
+                    eventKind = LedgerEventKind.CASH_EVENT.name,
+                    amountPaisa = amountPaisa,
+                    partyId = debt.partyId,
+                    debtRecordId = debtId,
+                    description = "ধারের টাকা ফেরত গ্রহণ: $partyName",
+                    notes = notes?.trim()?.blankToNull(),
+                    eventTimestampEpochMs = occurredAtEpochMs,
+                    confirmationStatus = ConfirmationStatus.CONFIRMED.name
+                )
+                ledgerEventDao.insert(tx)
+
+                val newRemaining = remaining - amountPaisa
+                val newStatus = if (newRemaining == 0L) DebtRecordStatus.SETTLED.name else DebtRecordStatus.PARTIALLY_SETTLED.name
+                debtRecordDao.updateStatus(debtId, newStatus)
+
+                logAudit("debt_payments", payment.id, AuditActionType.INSERT, null, payment.toString(), "Loan repayment collected: $partyName")
+                FinancialResult.Success(payment)
+            }
+        } catch (e: Exception) {
+            FinancialResult.Error("ধারের টাকা ফেরত সংরক্ষণ করা যায়নি।", e)
+        }
+    }
+
+    // --- EARNED / CLIENT RECEIVABLE (কাজ/সেবা থেকে পাওনা) ---
+    fun createEarnedReceivable(
+        partyId: String,
+        title: String,
+        agreedAmountPaisa: Long,
+        occurredAtEpochMs: Long = System.currentTimeMillis(),
+        dueAtEpochMs: Long? = null,
+        notes: String? = null
+    ): FinancialResult<EarnedReceivableEntity> {
+        if (agreedAmountPaisa <= 0) return FinancialResult.Error("পাওনার পরিমাণ শূন্য বা ঋণাত্মক হতে পারে না।")
+        if (title.isBlank()) return FinancialResult.Error("কাজের বা সেবার শিরোনাম লিখুন।")
+        val party = partyDao.getById(partyId) ?: return FinancialResult.Error("পক্ষ বা ব্যক্তি খুঁজে পাওয়া যায়নি।")
+
+        return try {
+            db.runInTransaction<FinancialResult<EarnedReceivableEntity>> {
+                val receivable = EarnedReceivableEntity(
+                    partyId = partyId,
+                    title = title.trim(),
+                    agreedAmountPaisa = agreedAmountPaisa,
+                    occurredAtEpochMs = occurredAtEpochMs,
+                    dueAtEpochMs = dueAtEpochMs,
+                    notes = notes?.trim()?.blankToNull(),
+                    status = DebtRecordStatus.ACTIVE.name
+                )
+                earnedReceivableDao.insert(receivable)
+
+                // Recognition event: records claim, does NOT count as cash income yet
+                val tx = TransactionEntity(
+                    eventCode = LedgerEventCode.TX_05_RECEIVABLE_CREATED.name,
+                    eventKind = LedgerEventKind.RECOGNITION_EVENT.name,
+                    amountPaisa = agreedAmountPaisa,
+                    partyId = partyId,
+                    earnedReceivableId = receivable.id,
+                    description = "কাজের প্রাপ্য: ${receivable.title} (${party.displayName})",
+                    notes = notes?.trim()?.blankToNull(),
+                    eventTimestampEpochMs = occurredAtEpochMs,
+                    confirmationStatus = ConfirmationStatus.CONFIRMED.name
+                )
+                ledgerEventDao.insert(tx)
+
+                logAudit("earned_receivables", receivable.id, AuditActionType.INSERT, null, receivable.toString(), "Earned receivable created: ${party.displayName}")
+                FinancialResult.Success(receivable)
+            }
+        } catch (e: Exception) {
+            FinancialResult.Error("কাজের পাওনা সংরক্ষণ করা যায়নি।", e)
+        }
+    }
+
+    fun recordReceivablePayment(
+        receivableId: String,
+        amountPaisa: Long,
+        occurredAtEpochMs: Long = System.currentTimeMillis(),
+        notes: String? = null
+    ): FinancialResult<ReceivablePaymentEntity> {
+        if (amountPaisa <= 0) return FinancialResult.Error("টাকা আদায়ের পরিমাণ শূন্য বা ঋণাত্মক হতে পারে না।")
+        val receivable = earnedReceivableDao.getById(receivableId) ?: return FinancialResult.Error("কাজের পাওনার হিসাব পাওয়া যায়নি।")
+
+        val payments = receivablePaymentDao.getPaymentsForReceivable(receivableId)
+        val alreadyCollected = payments.sumOf { it.amountPaisa }
+        val remaining = receivable.agreedAmountPaisa - alreadyCollected
+        if (amountPaisa > remaining) {
+            return FinancialResult.Error("আদায়ের পরিমাণ বাকি পাওনার চেয়ে বেশি হতে পারে না (বাকি: ৳${remaining / 100})।")
+        }
+
+        return try {
+            db.runInTransaction<FinancialResult<ReceivablePaymentEntity>> {
+                val payment = ReceivablePaymentEntity(
+                    receivableId = receivableId,
+                    amountPaisa = amountPaisa,
+                    occurredAtEpochMs = occurredAtEpochMs,
+                    notes = notes?.trim()?.blankToNull()
+                )
+                receivablePaymentDao.insert(payment)
+
+                val party = partyDao.getById(receivable.partyId)
+                val partyName = party?.displayName ?: "পক্ষ"
+
+                // Cash income event: now that cash is received, it enters cash income
+                val tx = TransactionEntity(
+                    eventCode = LedgerEventCode.TX_01_INCOME.name,
+                    eventKind = LedgerEventKind.CASH_EVENT.name,
+                    amountPaisa = amountPaisa,
+                    partyId = receivable.partyId,
+                    earnedReceivableId = receivableId,
+                    description = "কাজের পাওনা আদায়: ${receivable.title} ($partyName)",
+                    notes = notes?.trim()?.blankToNull(),
+                    eventTimestampEpochMs = occurredAtEpochMs,
+                    confirmationStatus = ConfirmationStatus.CONFIRMED.name
+                )
+                ledgerEventDao.insert(tx)
+
+                val newRemaining = remaining - amountPaisa
+                val newStatus = if (newRemaining == 0L) DebtRecordStatus.SETTLED.name else DebtRecordStatus.PARTIALLY_SETTLED.name
+                earnedReceivableDao.updateStatus(receivableId, newStatus)
+
+                logAudit("receivable_payments", payment.id, AuditActionType.INSERT, null, payment.toString(), "Earned receivable payment: $partyName")
+                FinancialResult.Success(payment)
+            }
+        } catch (e: Exception) {
+            FinancialResult.Error("পাওনা আদায়ের তথ্য সংরক্ষণ করা যায়নি।", e)
+        }
+    }
+
+    // --- AGGREGATIONS & PROFILES ---
+    fun getDebtReceivablesSummary(): DebtReceivablesSummary {
+        val now = System.currentTimeMillis()
+        val debts = debtRecordDao.getAllActive()
+        val allDebtPayments = debtPaymentDao.getAllNonReversed().groupBy { it.debtId }
+        val earnedRecs = earnedReceivableDao.getAllActive()
+        val allRecPayments = receivablePaymentDao.getAllNonReversed().groupBy { it.receivableId }
+
+        var borrowedOutstanding = 0L
+        var lentOutstanding = 0L
+        var overdueCount = 0
+
+        for (debt in debts) {
+            val paid = allDebtPayments[debt.id]?.sumOf { it.amountPaisa } ?: 0L
+            val rem = Math.max(0L, debt.principalPaisa - paid)
+            if (rem > 0L) {
+                if (debt.type == DebtType.BORROWED.name) {
+                    borrowedOutstanding += rem
+                } else {
+                    lentOutstanding += rem
+                }
+                if (debt.dueAtEpochMs != null && now > debt.dueAtEpochMs) {
+                    overdueCount++
+                }
+            }
+        }
+
+        var earnedOutstanding = 0L
+        for (rec in earnedRecs) {
+            val paid = allRecPayments[rec.id]?.sumOf { it.amountPaisa } ?: 0L
+            val rem = Math.max(0L, rec.agreedAmountPaisa - paid)
+            if (rem > 0L) {
+                earnedOutstanding += rem
+                if (rec.dueAtEpochMs != null && now > rec.dueAtEpochMs) {
+                    overdueCount++
+                }
+            }
+        }
+
+        return DebtReceivablesSummary(
+            totalBorrowedOutstandingPaisa = borrowedOutstanding,
+            totalLentOutstandingPaisa = lentOutstanding,
+            totalEarnedOutstandingPaisa = earnedOutstanding,
+            overdueCount = overdueCount
+        )
+    }
+
+    fun getAllDebtRecordItems(): List<DebtRecordItem> {
+        val now = System.currentTimeMillis()
+        val parties = partyDao.getAllActive().associateBy { it.id }
+        val debts = debtRecordDao.getAllActive()
+        val allDebtPayments = debtPaymentDao.getAllNonReversed().groupBy { it.debtId }
+
+        return debts.map { debt ->
+            val payments = (allDebtPayments[debt.id] ?: emptyList()).map {
+                DebtPaymentItem(
+                    id = it.id,
+                    debtId = it.debtId,
+                    amountPaisa = it.amountPaisa,
+                    occurredAtEpochMs = it.occurredAtEpochMs,
+                    notes = it.notes,
+                    isReversed = it.isReversed
+                )
+            }
+            val totalRepaid = payments.sumOf { it.amountPaisa }
+            val remaining = Math.max(0L, debt.principalPaisa - totalRepaid)
+            val isOverdue = remaining > 0L && debt.dueAtEpochMs != null && now > debt.dueAtEpochMs
+
+            DebtRecordItem(
+                id = debt.id,
+                partyId = debt.partyId,
+                partyName = parties[debt.partyId]?.displayName ?: "পক্ষ",
+                type = debt.type,
+                principalPaisa = debt.principalPaisa,
+                remainingPaisa = remaining,
+                totalRepaidPaisa = totalRepaid,
+                occurredAtEpochMs = debt.occurredAtEpochMs,
+                dueAtEpochMs = debt.dueAtEpochMs,
+                notes = debt.notes,
+                status = debt.status,
+                isOverdue = isOverdue,
+                payments = payments
+            )
+        }
+    }
+
+    fun getAllEarnedReceivableItems(): List<EarnedReceivableItem> {
+        val now = System.currentTimeMillis()
+        val parties = partyDao.getAllActive().associateBy { it.id }
+        val receivables = earnedReceivableDao.getAllActive()
+        val allRecPayments = receivablePaymentDao.getAllNonReversed().groupBy { it.receivableId }
+
+        return receivables.map { rec ->
+            val payments = (allRecPayments[rec.id] ?: emptyList()).map {
+                ReceivablePaymentItem(
+                    id = it.id,
+                    receivableId = it.receivableId,
+                    amountPaisa = it.amountPaisa,
+                    occurredAtEpochMs = it.occurredAtEpochMs,
+                    notes = it.notes,
+                    isReversed = it.isReversed
+                )
+            }
+            val totalReceived = payments.sumOf { it.amountPaisa }
+            val remaining = Math.max(0L, rec.agreedAmountPaisa - totalReceived)
+            val isOverdue = remaining > 0L && rec.dueAtEpochMs != null && now > rec.dueAtEpochMs
+
+            EarnedReceivableItem(
+                id = rec.id,
+                partyId = rec.partyId,
+                partyName = parties[rec.partyId]?.displayName ?: "পক্ষ",
+                title = rec.title,
+                agreedAmountPaisa = rec.agreedAmountPaisa,
+                totalReceivedPaisa = totalReceived,
+                remainingPaisa = remaining,
+                occurredAtEpochMs = rec.occurredAtEpochMs,
+                dueAtEpochMs = rec.dueAtEpochMs,
+                notes = rec.notes,
+                status = rec.status,
+                isOverdue = isOverdue,
+                payments = payments
+            )
+        }
+    }
+
+    fun getPartyFinancialProfile(partyId: String): PartyFinancialProfile? {
+        val party = partyDao.getById(partyId) ?: return null
+        val debts = getAllDebtRecordItems().filter { it.partyId == partyId }
+        val recs = getAllEarnedReceivableItems().filter { it.partyId == partyId }
+
+        val borrowedOutstanding = debts.filter { it.type == DebtType.BORROWED.name }.sumOf { it.remainingPaisa }
+        val lentOutstanding = debts.filter { it.type == DebtType.LENT.name }.sumOf { it.remainingPaisa }
+        val totalEarned = recs.sumOf { it.agreedAmountPaisa }
+        val totalReceived = recs.sumOf { it.totalReceivedPaisa }
+        val earnedOutstanding = recs.sumOf { it.remainingPaisa }
+
+        return PartyFinancialProfile(
+            party = PartyItem(
+                id = party.id,
+                displayName = party.displayName,
+                partyType = party.partyType,
+                phone = party.phone,
+                email = party.email,
+                note = party.note,
+                isArchived = party.isArchived
+            ),
+            outstandingBorrowedPaisa = borrowedOutstanding,
+            outstandingLentPaisa = lentOutstanding,
+            outstandingEarnedPaisa = earnedOutstanding,
+            totalEarnedPaisa = totalEarned,
+            totalReceivedPaisa = totalReceived,
+            debts = debts,
+            receivables = recs
+        )
     }
 }

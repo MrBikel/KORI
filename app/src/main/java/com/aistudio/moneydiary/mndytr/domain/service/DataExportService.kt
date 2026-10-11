@@ -3,6 +3,7 @@ package com.aistudio.moneydiary.mndytr.domain.service
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import androidx.core.content.FileProvider
 import com.aistudio.moneydiary.mndytr.domain.model.DiaryEntry
 import com.aistudio.moneydiary.mndytr.domain.model.DiaryEntryType
@@ -16,13 +17,29 @@ import java.util.Locale
 
 object DataExportService {
 
+    fun mapToTaxonomy(entry: DiaryEntry): String {
+        return when (entry.eventCode) {
+            "TX_01_INCOME" -> "INCOME"
+            "TX_02_EXPENSE" -> "EXPENSE"
+            "TX_07_BORROWED_MONEY" -> "DEBT_BORROWED"
+            "TX_09_DEBT_REPAID" -> "DEBT_REPAYMENT"
+            "TX_10_LENT_MONEY" -> "LOAN_RECEIVABLE_CREATED"
+            "TX_11_LOAN_COLLECTED" -> "LOAN_RECEIVABLE_REPAYMENT"
+            "TX_05_RECEIVABLE_CREATED" -> "EARNED_RECEIVABLE_CREATED"
+            "TX_06_RECEIVABLE_COLLECTED" -> "EARNED_RECEIVABLE_PAYMENT"
+            "TX_16_BALANCE_ADJUSTMENT" -> "ADJUSTMENT"
+            "TX_17_REVERSAL" -> "REVERSAL"
+            else -> if (entry.type == DiaryEntryType.INCOME) "INCOME" else "EXPENSE"
+        }
+    }
+
     fun generateCsv(
         entries: List<DiaryEntry>,
         includePrivateNotes: Boolean = false
     ): String {
         val sb = StringBuilder()
-        // CSV Header
-        sb.append("Type,Amount_BDT,Category,Source,Date_Time,Description,Necessity")
+        // CSV Header with full taxonomy
+        sb.append("Taxonomy,Type,Amount_BDT,Category,Source_Party,Date_Time,Description,Necessity")
         if (includePrivateNotes) {
             sb.append(",Private_Notes")
         }
@@ -30,6 +47,7 @@ object DataExportService {
 
         val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US)
         for (entry in entries) {
+            val taxonomy = mapToTaxonomy(entry)
             val typeStr = if (entry.type == DiaryEntryType.INCOME) "Income" else "Expense"
             val amountTaka = entry.amountPaisa / 100.0
             val dateTime = sdf.format(Date(entry.occurrenceDateEpochMs))
@@ -38,7 +56,7 @@ object DataExportService {
             val desc = escapeCsv(entry.description)
             val necessity = escapeCsv(entry.necessity.banglaLabel)
 
-            sb.append("$typeStr,$amountTaka,$category,$source,$dateTime,$desc,$necessity")
+            sb.append("$taxonomy,$typeStr,$amountTaka,$category,$source,$dateTime,$desc,$necessity")
             if (includePrivateNotes) {
                 sb.append(",${escapeCsv(entry.notes ?: "")}")
             }
@@ -53,7 +71,7 @@ object DataExportService {
     ): String {
         val root = JSONObject()
         root.put("app", "কড়ি (Kori)")
-        root.put("version", "2.0")
+        root.put("version", "1.0")
         root.put("exportedAtEpochMs", System.currentTimeMillis())
         root.put("entryCount", entries.size)
 
@@ -63,11 +81,13 @@ object DataExportService {
         for (entry in entries) {
             val obj = JSONObject()
             obj.put("id", entry.id)
+            obj.put("taxonomy", mapToTaxonomy(entry))
             obj.put("type", entry.type.name)
+            obj.put("eventCode", entry.eventCode)
             obj.put("amountPaisa", entry.amountPaisa)
             obj.put("amountTaka", entry.amountPaisa / 100.0)
             obj.put("category", entry.categoryNameBn)
-            obj.put("source", entry.sourceDescription ?: "")
+            obj.put("sourceParty", entry.sourceDescription ?: "")
             obj.put("dateTime", sdf.format(Date(entry.occurrenceDateEpochMs)))
             obj.put("timestampEpochMs", entry.occurrenceDateEpochMs)
             obj.put("description", entry.description)
@@ -123,7 +143,7 @@ object DataExportService {
             }
             return Intent.createChooser(shareIntent, "কড়ি ডেটা এক্সপোর্ট শেয়ার করুন")
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("DataExportService", "Export failed", e)
             return null
         }
     }

@@ -4,11 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.aistudio.moneydiary.mndytr.BuildConfig
 import com.aistudio.moneydiary.mndytr.data.local.database.AppDatabase
-import com.aistudio.moneydiary.mndytr.data.local.entity.AppSettingEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.AuditLogEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.CategoryEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.FrugalityGoalEntity
-import com.aistudio.moneydiary.mndytr.data.local.entity.TransactionEntity
+import com.aistudio.moneydiary.mndytr.data.local.entity.*
 import com.aistudio.moneydiary.mndytr.domain.model.BackupSummary
 import com.aistudio.moneydiary.mndytr.domain.model.RestoreResult
 import org.json.JSONArray
@@ -19,8 +15,9 @@ import java.util.UUID
 
 object LocalBackupRestoreService {
 
-    private const val FORMAT_IDENTIFIER = "KORI_BACKUP_V1"
-    private const val BACKUP_FORMAT_VERSION = 1
+    private const val FORMAT_IDENTIFIER_V1 = "KORI_BACKUP_V1"
+    private const val FORMAT_IDENTIFIER_V2 = "KORI_BACKUP_V2"
+    private const val BACKUP_FORMAT_VERSION = 2
     private const val MAX_BACKUP_SIZE_BYTES = 5 * 1024 * 1024 // 5MB limit for text-based backup
 
     private val SENSITIVE_SETTING_KEYS = setOf(
@@ -47,6 +44,11 @@ object LocalBackupRestoreService {
         val transactions = db.ledgerEventDao().getAllNonDeleted()
         val goals = db.frugalityGoalDao().getAllActive()
         val settings = db.appSettingDao().getAll()
+        val parties = db.partyDao().getAllActive()
+        val debtRecords = db.debtRecordDao().getAllActive()
+        val debtPayments = db.debtPaymentDao().getAllNonReversed()
+        val earnedReceivables = db.earnedReceivableDao().getAllActive()
+        val receivablePayments = db.receivablePaymentDao().getAllNonReversed()
 
         // 2. Serialize categories
         val catsArray = JSONArray()
@@ -75,6 +77,9 @@ object LocalBackupRestoreService {
             obj.put("sourceDescription", tx.sourceDescription ?: "")
             obj.put("necessity", tx.necessity)
             obj.put("categoryId", tx.categoryId ?: "")
+            obj.put("partyId", tx.partyId ?: "")
+            obj.put("debtRecordId", tx.debtRecordId ?: "")
+            obj.put("earnedReceivableId", tx.earnedReceivableId ?: "")
             obj.put("eventTimestampEpochMs", tx.eventTimestampEpochMs)
             obj.put("description", tx.description)
             if (includeNotes) {
@@ -114,12 +119,94 @@ object LocalBackupRestoreService {
         }
         payloadObj.put("settings", settingsArray)
 
-        // 6. Wrap in Envelope
+        // 6. Serialize parties
+        val partiesArray = JSONArray()
+        for (party in parties) {
+            val obj = JSONObject()
+            obj.put("id", party.id)
+            obj.put("displayName", party.displayName)
+            obj.put("partyType", party.partyType)
+            obj.put("phone", party.phone ?: "")
+            obj.put("email", party.email ?: "")
+            if (includeNotes) {
+                obj.put("note", party.note ?: "")
+            }
+            partiesArray.put(obj)
+        }
+        payloadObj.put("parties", partiesArray)
+
+        // 7. Serialize debt records
+        val debtsArray = JSONArray()
+        for (debt in debtRecords) {
+            val obj = JSONObject()
+            obj.put("id", debt.id)
+            obj.put("partyId", debt.partyId)
+            obj.put("type", debt.type)
+            obj.put("principalPaisa", debt.principalPaisa)
+            obj.put("occurredAtEpochMs", debt.occurredAtEpochMs)
+            debt.dueAtEpochMs?.let { obj.put("dueAtEpochMs", it) }
+            obj.put("status", debt.status)
+            if (includeNotes) {
+                obj.put("notes", debt.notes ?: "")
+            }
+            debtsArray.put(obj)
+        }
+        payloadObj.put("debt_records", debtsArray)
+
+        // 8. Serialize debt payments
+        val debtPaymentsArray = JSONArray()
+        for (payment in debtPayments) {
+            val obj = JSONObject()
+            obj.put("id", payment.id)
+            obj.put("debtId", payment.debtId)
+            obj.put("amountPaisa", payment.amountPaisa)
+            obj.put("occurredAtEpochMs", payment.occurredAtEpochMs)
+            if (includeNotes) {
+                obj.put("notes", payment.notes ?: "")
+            }
+            debtPaymentsArray.put(obj)
+        }
+        payloadObj.put("debt_payments", debtPaymentsArray)
+
+        // 9. Serialize earned receivables
+        val recsArray = JSONArray()
+        for (rec in earnedReceivables) {
+            val obj = JSONObject()
+            obj.put("id", rec.id)
+            obj.put("partyId", rec.partyId)
+            obj.put("title", rec.title)
+            obj.put("agreedAmountPaisa", rec.agreedAmountPaisa)
+            obj.put("occurredAtEpochMs", rec.occurredAtEpochMs)
+            rec.dueAtEpochMs?.let { obj.put("dueAtEpochMs", it) }
+            obj.put("status", rec.status)
+            if (includeNotes) {
+                obj.put("notes", rec.notes ?: "")
+            }
+            recsArray.put(obj)
+        }
+        payloadObj.put("earned_receivables", recsArray)
+
+        // 10. Serialize receivable payments
+        val recPaymentsArray = JSONArray()
+        for (payment in receivablePayments) {
+            val obj = JSONObject()
+            obj.put("id", payment.id)
+            obj.put("receivableId", payment.receivableId)
+            obj.put("amountPaisa", payment.amountPaisa)
+            obj.put("occurredAtEpochMs", payment.occurredAtEpochMs)
+            if (includeNotes) {
+                obj.put("notes", payment.notes ?: "")
+            }
+            recPaymentsArray.put(obj)
+        }
+        payloadObj.put("receivable_payments", recPaymentsArray)
+
+        // Wrap in Envelope
         val payloadStr = payloadObj.toString()
         val checksum = calculateSha256(payloadStr)
 
         val envelope = JSONObject()
-        envelope.put("format_identifier", FORMAT_IDENTIFIER)
+        envelope.put("format_identifier", FORMAT_IDENTIFIER_V2)
         envelope.put("format_version", BACKUP_FORMAT_VERSION)
         envelope.put("schema_version", db.openHelper.readableDatabase.version)
         envelope.put("app_version_code", BuildConfig.VERSION_CODE)
@@ -143,8 +230,9 @@ object LocalBackupRestoreService {
 
             val envelope = JSONObject(jsonString)
             
-            // Format & Version checks
-            if (envelope.optString("format_identifier") != FORMAT_IDENTIFIER) return null
+            // Format & Version checks (supports V1 and V2)
+            val formatId = envelope.optString("format_identifier")
+            if (formatId != FORMAT_IDENTIFIER_V1 && formatId != FORMAT_IDENTIFIER_V2) return null
             val ver = envelope.optInt("format_version")
             if (ver <= 0 || ver > BACKUP_FORMAT_VERSION) return null
             
@@ -233,6 +321,13 @@ object LocalBackupRestoreService {
                 // Isolated Staging Pass
                 try {
                     stagingDb.runInTransaction {
+                        if (payload.has("parties")) {
+                            val partiesArray = payload.getJSONArray("parties")
+                            for (i in 0 until partiesArray.length()) {
+                                stagingDb.partyDao().insert(parseParty(partiesArray.getJSONObject(i)))
+                            }
+                        }
+
                         val catsArray = payload.getJSONArray("categories")
                         for (i in 0 until catsArray.length()) {
                             stagingDb.categoryDao().insert(parseCategory(catsArray.getJSONObject(i)))
@@ -253,6 +348,34 @@ object LocalBackupRestoreService {
                             val obj = settingsArray.getJSONObject(i)
                             stagingDb.appSettingDao().set(AppSettingEntity(obj.getString("key"), obj.getString("value")))
                         }
+
+                        if (payload.has("debt_records")) {
+                            val debtsArray = payload.getJSONArray("debt_records")
+                            for (i in 0 until debtsArray.length()) {
+                                stagingDb.debtRecordDao().insert(parseDebtRecord(debtsArray.getJSONObject(i)))
+                            }
+                        }
+
+                        if (payload.has("debt_payments")) {
+                            val debtPaymentsArray = payload.getJSONArray("debt_payments")
+                            for (i in 0 until debtPaymentsArray.length()) {
+                                stagingDb.debtPaymentDao().insert(parseDebtPayment(debtPaymentsArray.getJSONObject(i)))
+                            }
+                        }
+
+                        if (payload.has("earned_receivables")) {
+                            val recsArray = payload.getJSONArray("earned_receivables")
+                            for (i in 0 until recsArray.length()) {
+                                stagingDb.earnedReceivableDao().insert(parseEarnedReceivable(recsArray.getJSONObject(i)))
+                            }
+                        }
+
+                        if (payload.has("receivable_payments")) {
+                            val recPaymentsArray = payload.getJSONArray("receivable_payments")
+                            for (i in 0 until recPaymentsArray.length()) {
+                                stagingDb.receivablePaymentDao().insert(parseReceivablePayment(recPaymentsArray.getJSONObject(i)))
+                            }
+                        }
                     }
                 } catch (e: Exception) {
                     return RestoreResult.Failure("ডেটা ইম্পোর্ট ব্যর্থ: ${e.localizedMessage}", "JSON_IMPORT_FAILED")
@@ -262,6 +385,11 @@ object LocalBackupRestoreService {
                 val stagedTxs = stagingDb.ledgerEventDao().getAllNonDeleted()
                 val stagedCats = stagingDb.categoryDao().getAll()
                 val stagedGoals = stagingDb.frugalityGoalDao().getAllActive()
+                val stagedParties = stagingDb.partyDao().getAllActive()
+                val stagedDebts = stagingDb.debtRecordDao().getAllActive()
+                val stagedDebtPayments = stagingDb.debtPaymentDao().getAllNonReversed()
+                val stagedRecs = stagingDb.earnedReceivableDao().getAllActive()
+                val stagedRecPayments = stagingDb.receivablePaymentDao().getAllNonReversed()
                 
                 if (stagedTxs.size != envelope.getInt("entry_count")) {
                     return RestoreResult.Failure("রেকর্ড সংখ্যা মেলেনি।", "ENTRY_COUNT_MISMATCH")
@@ -296,9 +424,14 @@ object LocalBackupRestoreService {
                     currentDb.runInTransaction {
                         currentDb.clearAllTables()
                         
+                        stagedParties.forEach { currentDb.partyDao().insert(it) }
                         stagedCats.forEach { currentDb.categoryDao().insert(it) }
                         stagedTxs.forEach { currentDb.ledgerEventDao().insert(it) }
                         stagedGoals.forEach { currentDb.frugalityGoalDao().insert(it) }
+                        stagedDebts.forEach { currentDb.debtRecordDao().insert(it) }
+                        stagedDebtPayments.forEach { currentDb.debtPaymentDao().insert(it) }
+                        stagedRecs.forEach { currentDb.earnedReceivableDao().insert(it) }
+                        stagedRecPayments.forEach { currentDb.receivablePaymentDao().insert(it) }
                         
                         stagingDb.appSettingDao().getAll().forEach { currentDb.appSettingDao().set(it) }
 
@@ -314,8 +447,6 @@ object LocalBackupRestoreService {
                         )
                     }
                 } catch (e: Exception) {
-                    // Transaction failed - existing data should be preserved by Room
-                    // but we also have our manual safety backup if needed.
                     return RestoreResult.Failure("ডেটাবেস আপডেট ব্যর্থ হয়েছে।", "TRANSACTION_FAILURE: ${e.localizedMessage}")
                 }
 
@@ -349,6 +480,9 @@ object LocalBackupRestoreService {
         sourceDescription = obj.optString("sourceDescription").takeIf { it.isNotEmpty() },
         necessity = obj.optString("necessity", "অনির্ধারিত"),
         categoryId = obj.optString("categoryId").takeIf { it.isNotEmpty() },
+        partyId = obj.optString("partyId").takeIf { it.isNotEmpty() },
+        debtRecordId = obj.optString("debtRecordId").takeIf { it.isNotEmpty() },
+        earnedReceivableId = obj.optString("earnedReceivableId").takeIf { it.isNotEmpty() },
         eventTimestampEpochMs = obj.getLong("eventTimestampEpochMs"),
         description = obj.getString("description"),
         notes = obj.optString("notes").takeIf { it.isNotEmpty() }
@@ -365,6 +499,53 @@ object LocalBackupRestoreService {
         notes = obj.optString("notes").takeIf { it.isNotEmpty() },
         createdAtEpochMs = obj.optLong("createdAtEpochMs", System.currentTimeMillis()),
         updatedAtEpochMs = obj.optLong("updatedAtEpochMs", System.currentTimeMillis())
+    )
+
+    private fun parseParty(obj: JSONObject) = PartyEntity(
+        id = obj.getString("id"),
+        displayName = obj.getString("displayName"),
+        partyType = obj.optString("partyType", "PERSON"),
+        phone = obj.optString("phone").takeIf { it.isNotEmpty() },
+        email = obj.optString("email").takeIf { it.isNotEmpty() },
+        note = obj.optString("note").takeIf { it.isNotEmpty() }
+    )
+
+    private fun parseDebtRecord(obj: JSONObject) = DebtRecordEntity(
+        id = obj.getString("id"),
+        partyId = obj.getString("partyId"),
+        type = obj.getString("type"),
+        principalPaisa = obj.getLong("principalPaisa"),
+        occurredAtEpochMs = obj.getLong("occurredAtEpochMs"),
+        dueAtEpochMs = if (obj.has("dueAtEpochMs")) obj.getLong("dueAtEpochMs") else null,
+        status = obj.optString("status", "ACTIVE"),
+        notes = obj.optString("notes").takeIf { it.isNotEmpty() }
+    )
+
+    private fun parseDebtPayment(obj: JSONObject) = DebtPaymentEntity(
+        id = obj.getString("id"),
+        debtId = obj.getString("debtId"),
+        amountPaisa = obj.getLong("amountPaisa"),
+        occurredAtEpochMs = obj.getLong("occurredAtEpochMs"),
+        notes = obj.optString("notes").takeIf { it.isNotEmpty() }
+    )
+
+    private fun parseEarnedReceivable(obj: JSONObject) = EarnedReceivableEntity(
+        id = obj.getString("id"),
+        partyId = obj.getString("partyId"),
+        title = obj.getString("title"),
+        agreedAmountPaisa = obj.getLong("agreedAmountPaisa"),
+        occurredAtEpochMs = obj.getLong("occurredAtEpochMs"),
+        dueAtEpochMs = if (obj.has("dueAtEpochMs")) obj.getLong("dueAtEpochMs") else null,
+        status = obj.optString("status", "ACTIVE"),
+        notes = obj.optString("notes").takeIf { it.isNotEmpty() }
+    )
+
+    private fun parseReceivablePayment(obj: JSONObject) = ReceivablePaymentEntity(
+        id = obj.getString("id"),
+        receivableId = obj.getString("receivableId"),
+        amountPaisa = obj.getLong("amountPaisa"),
+        occurredAtEpochMs = obj.getLong("occurredAtEpochMs"),
+        notes = obj.optString("notes").takeIf { it.isNotEmpty() }
     )
 }
 

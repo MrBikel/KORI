@@ -288,7 +288,8 @@ data class DiaryEntry(
     val necessity: NecessityClassification = NecessityClassification.UNSPECIFIED,
     val confirmationStatus: ConfirmationStatus = ConfirmationStatus.CONFIRMED,
     val createdAtEpochMs: Long = System.currentTimeMillis(),
-    val updatedAtEpochMs: Long = System.currentTimeMillis()
+    val updatedAtEpochMs: Long = System.currentTimeMillis(),
+    val eventCode: String? = null
 )
 
 data class DayGroupedDiary(
@@ -350,4 +351,96 @@ data class PeriodComparison(
     val topContributingCategories: List<CategoryDifferenceContribution>,
     val narrative: String
 )
+
+data class PartyItem(
+    val id: String,
+    val displayName: String,
+    val partyType: String = "PERSON",
+    val phone: String? = null,
+    val email: String? = null,
+    val note: String? = null,
+    val isArchived: Boolean = false
+)
+
+data class DebtPaymentItem(
+    val id: String,
+    val debtId: String,
+    val amountPaisa: Long,
+    val occurredAtEpochMs: Long,
+    val notes: String? = null,
+    val isReversed: Boolean = false
+)
+
+data class DebtRecordItem(
+    val id: String,
+    val partyId: String,
+    val partyName: String,
+    val type: String, // BORROWED or LENT
+    val principalPaisa: Long,
+    val remainingPaisa: Long,
+    val totalRepaidPaisa: Long,
+    val occurredAtEpochMs: Long,
+    val dueAtEpochMs: Long? = null,
+    val notes: String? = null,
+    val status: String,
+    val isOverdue: Boolean = false,
+    val payments: List<DebtPaymentItem> = emptyList()
+)
+
+data class ReceivablePaymentItem(
+    val id: String,
+    val receivableId: String,
+    val amountPaisa: Long,
+    val occurredAtEpochMs: Long,
+    val notes: String? = null,
+    val isReversed: Boolean = false
+)
+
+data class EarnedReceivableItem(
+    val id: String,
+    val partyId: String,
+    val partyName: String,
+    val title: String,
+    val agreedAmountPaisa: Long,
+    val totalReceivedPaisa: Long,
+    val remainingPaisa: Long,
+    val occurredAtEpochMs: Long,
+    val dueAtEpochMs: Long? = null,
+    val notes: String? = null,
+    val status: String,
+    val isOverdue: Boolean = false,
+    val payments: List<ReceivablePaymentItem> = emptyList()
+)
+
+data class PartyFinancialProfile(
+    val party: PartyItem,
+    val outstandingBorrowedPaisa: Long = 0L,
+    val outstandingLentPaisa: Long = 0L,
+    val outstandingEarnedPaisa: Long = 0L,
+    val totalEarnedPaisa: Long = 0L,
+    val totalReceivedPaisa: Long = 0L,
+    val debts: List<DebtRecordItem> = emptyList(),
+    val receivables: List<EarnedReceivableItem> = emptyList()
+)
+
+data class DebtReceivablesSummary(
+    val totalBorrowedOutstandingPaisa: Long = 0L,
+    val totalLentOutstandingPaisa: Long = 0L,
+    val totalEarnedOutstandingPaisa: Long = 0L,
+    val overdueCount: Int = 0
+)
+
+enum class FinancialTaxonomyType(val codeName: String, val labelBn: String) {
+    INCOME("INCOME", "আয়"),
+    EXPENSE("EXPENSE", "ব্যয়"),
+    DEBT_BORROWED("DEBT_BORROWED", "ঋণ গ্রহণ"),
+    DEBT_REPAYMENT("DEBT_REPAYMENT", "ঋণ পরিশোধ"),
+    LOAN_RECEIVABLE_CREATED("LOAN_RECEIVABLE_CREATED", "ধার প্রদান"),
+    LOAN_RECEIVABLE_REPAYMENT("LOAN_RECEIVABLE_REPAYMENT", "ধারের টাকা ফেরত"),
+    EARNED_RECEIVABLE_CREATED("EARNED_RECEIVABLE_CREATED", "কাজের পাওনা তৈরি"),
+    EARNED_RECEIVABLE_PAYMENT("EARNED_RECEIVABLE_PAYMENT", "কাজের পাওনা গ্রহণ"),
+    ADJUSTMENT("ADJUSTMENT", "সমন্বয়"),
+    REVERSAL("REVERSAL", "প্রতাহ্যার")
+}
+
 

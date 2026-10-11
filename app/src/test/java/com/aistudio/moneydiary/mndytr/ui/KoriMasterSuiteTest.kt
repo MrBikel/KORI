@@ -338,4 +338,86 @@ class KoriMasterSuiteTest {
         assertTrue(json.contains("\"amountPaisa\": 50000"))
         assertTrue(json.contains("\"amountPaisa\": 1000"))
     }
+
+    // 10. Room V3 Migration & Schema Validation
+    @Test
+    fun testRoomV3MigrationAndSchema() {
+        assertNotNull(AppDatabase.MIGRATION_1_2)
+        assertNotNull(AppDatabase.MIGRATION_2_3)
+        assertEquals(3, db.openHelper.readableDatabase.version)
+    }
+
+    // 11. Debt, Loan, and Earned Receivable Accounting Data Flow
+    @Test
+    fun testDebtAndReceivableAccountingFlow() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        // 1. Borrow ৳5,000 from রহিম
+        viewModel.borrowMoney("রহিম", 500000L, notes = "জরুরি প্রয়োজন")
+        advanceUntilIdle()
+
+        var state = viewModel.uiState.value
+        assertEquals(1, state.parties.size)
+        assertEquals(1, state.debtRecords.size)
+        val borrowedDebt = state.debtRecords.first()
+        assertEquals("BORROWED", borrowedDebt.type)
+        assertEquals(500000L, borrowedDebt.principalPaisa)
+        assertEquals(500000L, borrowedDebt.remainingPaisa)
+        assertEquals(500000L, state.debtReceivablesSummary.totalBorrowedOutstandingPaisa)
+
+        // 2. Repay ৳2,000 of the debt
+        viewModel.repayDebt(borrowedDebt.id, 200000L, notes = "আংশিক পরিশোধ")
+        advanceUntilIdle()
+
+        state = viewModel.uiState.value
+        val updatedDebt = state.debtRecords.first()
+        assertEquals(300000L, updatedDebt.remainingPaisa)
+        assertEquals(200000L, updatedDebt.totalRepaidPaisa)
+        assertEquals(300000L, state.debtReceivablesSummary.totalBorrowedOutstandingPaisa)
+
+        // 3. Lend ৳1,000 to করিম
+        viewModel.lendMoney("করিম", 100000L, notes = "ধার দেওয়া")
+        advanceUntilIdle()
+
+        state = viewModel.uiState.value
+        assertEquals(2, state.parties.size)
+        assertEquals(2, state.debtRecords.size)
+        val lentLoan = state.debtRecords.first { it.type == "LENT" }
+        assertEquals(100000L, lentLoan.remainingPaisa)
+        assertEquals(100000L, state.debtReceivablesSummary.totalLentOutstandingPaisa)
+
+        // 4. Create Earned Receivable: ৳3,000 from ক্লায়েন্ট
+        viewModel.createEarnedReceivable("ক্লায়েন্ট", "ডিজাইন কাজ", 300000L, notes = "পোস্টার ডিজাইন")
+        advanceUntilIdle()
+
+        state = viewModel.uiState.value
+        assertEquals(1, state.earnedReceivables.size)
+        val receivable = state.earnedReceivables.first()
+        assertEquals(300000L, receivable.agreedAmountPaisa)
+        assertEquals(300000L, receivable.remainingPaisa)
+        assertEquals(300000L, state.debtReceivablesSummary.totalEarnedOutstandingPaisa)
+
+        // 5. Collect ৳1,000 of the receivable
+        viewModel.recordReceivablePayment(receivable.id, 100000L, notes = "প্রথম কিস্তি")
+        advanceUntilIdle()
+
+        state = viewModel.uiState.value
+        val updatedReceivable = state.earnedReceivables.first()
+        assertEquals(200000L, updatedReceivable.remainingPaisa)
+        assertEquals(100000L, updatedReceivable.totalReceivedPaisa)
+        assertEquals(200000L, state.debtReceivablesSummary.totalEarnedOutstandingPaisa)
+
+        // 6. Test Local Backup V2 with Debt & Party Records
+        val backupJson = viewModel.exportLocalBackup(context, includeNotes = true)
+        val preview = viewModel.previewLocalRestore(context, backupJson)
+        assertNotNull(preview)
+        assertTrue(backupJson.contains("KORI_BACKUP_V2"))
+        assertTrue(backupJson.contains("parties"))
+        assertTrue(backupJson.contains("debt_records"))
+        assertTrue(backupJson.contains("earned_receivables"))
+        assertTrue(backupJson.contains("রহিম"))
+        assertTrue(backupJson.contains("করিম"))
+        assertTrue(backupJson.contains("ক্লায়েন্ট"))
+    }
 }

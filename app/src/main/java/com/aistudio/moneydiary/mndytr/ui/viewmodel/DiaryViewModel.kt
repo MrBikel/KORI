@@ -194,7 +194,8 @@ class DiaryViewModel(
                 necessity = NecessityClassification.fromLabel(event.necessity),
                 confirmationStatus = ConfirmationStatus.valueOf(event.confirmationStatus),
                 createdAtEpochMs = event.createdAtEpochMs,
-                updatedAtEpochMs = event.updatedAtEpochMs
+                updatedAtEpochMs = event.updatedAtEpochMs,
+                eventCode = event.eventCode
             )
         }
 
@@ -344,6 +345,36 @@ class DiaryViewModel(
             )
         }
 
+        // Debt, Receivables, and Parties
+        val debtRecords = financialService.getAllDebtRecordItems()
+        val earnedReceivables = financialService.getAllEarnedReceivableItems()
+        val parties = financialService.getAllParties()
+        val debtSummary = financialService.getDebtReceivablesSummary()
+
+        // Yesterday missing calculation
+        val cal = Calendar.getInstance()
+        cal.add(Calendar.DAY_OF_YEAR, -1)
+        cal.set(Calendar.HOUR_OF_DAY, 0)
+        cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        val yStart = cal.timeInMillis
+        cal.set(Calendar.HOUR_OF_DAY, 23)
+        cal.set(Calendar.MINUTE, 59)
+        cal.set(Calendar.SECOND, 59)
+        cal.set(Calendar.MILLISECOND, 999)
+        val yEnd = cal.timeInMillis
+        val yesterdayTxList = nonDeletedEvents.filter { it.eventTimestampEpochMs in yStart..yEnd }
+        val yesterdayHasNoEntries = yesterdayTxList.isEmpty()
+
+        // Upcoming debt / receivable notice
+        val upcomingDebtNotice = when {
+            debtRecords.any { it.isOverdue } -> "একটি ঋণের নির্ধারিত তারিখ পেরিয়ে গেছে।"
+            debtRecords.any { it.dueAtEpochMs != null && it.remainingPaisa > 0 && it.dueAtEpochMs - now in 0..(48 * 3600 * 1000) } -> "আগামীকাল একটি ঋণের নির্ধারিত তারিখ আছে।"
+            earnedReceivables.any { it.isOverdue } -> "একটি পাওনার প্রত্যাশিত তারিখ পেরিয়ে গেছে।"
+            else -> null
+        }
+
         _uiState.update { current ->
             current.copy(
                 isLoading = false,
@@ -374,7 +405,13 @@ class DiaryViewModel(
                 frequentShortcuts = shortcuts,
                 dashboardSummary = dashboardSummary,
                 recentTransactions = legacyRecent,
-                allTransactions = legacyRecent
+                allTransactions = legacyRecent,
+                debtRecords = debtRecords,
+                earnedReceivables = earnedReceivables,
+                parties = parties,
+                debtReceivablesSummary = debtSummary,
+                yesterdayHasNoEntries = yesterdayHasNoEntries,
+                upcomingDebtNotice = upcomingDebtNotice
             )
         }
     }
@@ -1046,6 +1083,226 @@ class DiaryViewModel(
         // Legacy method for tests or simple flow, but now we prefer the preview flow
         previewLocalRestore(context, backupJson)
         return true
+    }
+
+    // --- DEBT & RECEIVABLE ACTIONS ---
+    fun borrowMoney(
+        partyName: String,
+        principalPaisa: Long,
+        occurredAtEpochMs: Long = System.currentTimeMillis(),
+        dueAtEpochMs: Long? = null,
+        notes: String? = null
+    ) {
+        viewModelScope.launch(ioDispatcher) {
+            val partyRes = financialService.createOrGetParty(partyName)
+            if (partyRes is FinancialResult.Error) {
+                showSnackbar(partyRes.message)
+                return@launch
+            }
+            val party = (partyRes as FinancialResult.Success).data
+            val res = financialService.borrowMoney(party.id, principalPaisa, occurredAtEpochMs, dueAtEpochMs, notes)
+            when (res) {
+                is FinancialResult.Success -> {
+                    dismissDialog()
+                    showSnackbar("ঋণ গ্রহণের হিসাব সংরক্ষিত হয়েছে।")
+                    refreshNow()
+                }
+                is FinancialResult.Error -> showSnackbar(res.message)
+            }
+        }
+    }
+
+    fun repayDebt(
+        debtId: String,
+        amountPaisa: Long,
+        occurredAtEpochMs: Long = System.currentTimeMillis(),
+        notes: String? = null
+    ) {
+        viewModelScope.launch(ioDispatcher) {
+            val res = financialService.repayDebt(debtId, amountPaisa, occurredAtEpochMs, notes)
+            when (res) {
+                is FinancialResult.Success -> {
+                    dismissDialog()
+                    showSnackbar("ঋণ পরিশোধের হিসাব সংরক্ষিত হয়েছে।")
+                    refreshNow()
+                }
+                is FinancialResult.Error -> showSnackbar(res.message)
+            }
+        }
+    }
+
+    fun lendMoney(
+        partyName: String,
+        principalPaisa: Long,
+        occurredAtEpochMs: Long = System.currentTimeMillis(),
+        dueAtEpochMs: Long? = null,
+        notes: String? = null
+    ) {
+        viewModelScope.launch(ioDispatcher) {
+            val partyRes = financialService.createOrGetParty(partyName)
+            if (partyRes is FinancialResult.Error) {
+                showSnackbar(partyRes.message)
+                return@launch
+            }
+            val party = (partyRes as FinancialResult.Success).data
+            val res = financialService.lendMoney(party.id, principalPaisa, occurredAtEpochMs, dueAtEpochMs, notes)
+            when (res) {
+                is FinancialResult.Success -> {
+                    dismissDialog()
+                    showSnackbar("ধার দেওয়ার হিসাব সংরক্ষিত হয়েছে।")
+                    refreshNow()
+                }
+                is FinancialResult.Error -> showSnackbar(res.message)
+            }
+        }
+    }
+
+    fun collectLoanRepayment(
+        debtId: String,
+        amountPaisa: Long,
+        occurredAtEpochMs: Long = System.currentTimeMillis(),
+        notes: String? = null
+    ) {
+        viewModelScope.launch(ioDispatcher) {
+            val res = financialService.collectLoanRepayment(debtId, amountPaisa, occurredAtEpochMs, notes)
+            when (res) {
+                is FinancialResult.Success -> {
+                    dismissDialog()
+                    showSnackbar("ধারের টাকা ফেরত পাওয়া সংরক্ষিত হয়েছে।")
+                    refreshNow()
+                }
+                is FinancialResult.Error -> showSnackbar(res.message)
+            }
+        }
+    }
+
+    fun createEarnedReceivable(
+        partyName: String,
+        title: String,
+        agreedAmountPaisa: Long,
+        occurredAtEpochMs: Long = System.currentTimeMillis(),
+        dueAtEpochMs: Long? = null,
+        notes: String? = null
+    ) {
+        viewModelScope.launch(ioDispatcher) {
+            val partyRes = financialService.createOrGetParty(partyName)
+            if (partyRes is FinancialResult.Error) {
+                showSnackbar(partyRes.message)
+                return@launch
+            }
+            val party = (partyRes as FinancialResult.Success).data
+            val res = financialService.createEarnedReceivable(party.id, title, agreedAmountPaisa, occurredAtEpochMs, dueAtEpochMs, notes)
+            when (res) {
+                is FinancialResult.Success -> {
+                    dismissDialog()
+                    showSnackbar("কাজের প্রাপ্য হিসাব সংরক্ষিত হয়েছে।")
+                    refreshNow()
+                }
+                is FinancialResult.Error -> showSnackbar(res.message)
+            }
+        }
+    }
+
+    fun recordReceivablePayment(
+        receivableId: String,
+        amountPaisa: Long,
+        occurredAtEpochMs: Long = System.currentTimeMillis(),
+        notes: String? = null
+    ) {
+        viewModelScope.launch(ioDispatcher) {
+            val res = financialService.recordReceivablePayment(receivableId, amountPaisa, occurredAtEpochMs, notes)
+            when (res) {
+                is FinancialResult.Success -> {
+                    dismissDialog()
+                    showSnackbar("কাজের পাওনা আদায় সংরক্ষিত হয়েছে।")
+                    refreshNow()
+                }
+                is FinancialResult.Error -> showSnackbar(res.message)
+            }
+        }
+    }
+
+    fun createParty(
+        displayName: String,
+        partyType: com.aistudio.moneydiary.mndytr.data.local.entity.PartyType = com.aistudio.moneydiary.mndytr.data.local.entity.PartyType.PERSON,
+        phone: String? = null,
+        email: String? = null,
+        note: String? = null
+    ) {
+        viewModelScope.launch(ioDispatcher) {
+            val res = financialService.createOrGetParty(displayName, partyType, phone, email, note)
+            when (res) {
+                is FinancialResult.Success -> {
+                    dismissDialog()
+                    showSnackbar("পক্ষ বা ব্যক্তির তথ্য সংরক্ষিত হয়েছে।")
+                    refreshNow()
+                }
+                is FinancialResult.Error -> showSnackbar(res.message)
+            }
+        }
+    }
+
+    fun getPartyProfile(partyId: String): com.aistudio.moneydiary.mndytr.domain.model.PartyFinancialProfile? {
+        return financialService.getPartyFinancialProfile(partyId)
+    }
+
+    // --- GOOGLE & CLOUD ACTIONS ---
+    fun connectGoogleAccount(context: android.content.Context, email: String, displayName: String?) {
+        com.aistudio.moneydiary.mndytr.domain.service.GoogleCloudService.setGoogleAccount(context, email, displayName)
+        refreshCloudState(context)
+        showSnackbar("Google অ্যাকাউন্ট যুক্ত করা হয়েছে।")
+    }
+
+    fun disconnectGoogleAccount(context: android.content.Context) {
+        com.aistudio.moneydiary.mndytr.domain.service.GoogleCloudService.disconnectGoogleAccount(context)
+        refreshCloudState(context)
+        showSnackbar("Google অ্যাকাউন্ট সংযোগ বিচ্ছিন্ন করা হয়েছে।")
+    }
+
+    fun setDriveAuthorized(context: android.content.Context, authorized: Boolean) {
+        com.aistudio.moneydiary.mndytr.domain.service.GoogleCloudService.setDriveAuthorized(context, authorized)
+        refreshCloudState(context)
+        if (authorized) {
+            showSnackbar("Google Drive অনুমোদন সফল হয়েছে।")
+        }
+    }
+
+    fun setAutoBackupFrequency(context: android.content.Context, freq: com.aistudio.moneydiary.mndytr.domain.service.AutoBackupFrequency) {
+        com.aistudio.moneydiary.mndytr.domain.service.GoogleCloudService.setAutoBackupFrequency(context, freq)
+        refreshCloudState(context)
+        showSnackbar("স্বয়ংক্রিয় ব্যাকআপ নির্ধারণ করা হয়েছে: ${freq.labelBn}")
+    }
+
+    fun refreshCloudState(context: android.content.Context) {
+        val profile = com.aistudio.moneydiary.mndytr.domain.service.GoogleCloudService.getGoogleProfile(context)
+        val driveAuth = com.aistudio.moneydiary.mndytr.domain.service.GoogleCloudService.isDriveAuthorized(context)
+        val lastTime = com.aistudio.moneydiary.mndytr.domain.service.GoogleCloudService.getLastBackupTimeEpochMs(context)
+        val freq = com.aistudio.moneydiary.mndytr.domain.service.GoogleCloudService.getAutoBackupFrequency(context)
+        val aiOn = com.aistudio.moneydiary.mndytr.domain.service.AiAnalyticsService.isAiEnabled(context)
+        val aiPref = com.aistudio.moneydiary.mndytr.domain.service.AiAnalyticsService.getDataSharingPreference(context)
+
+        _uiState.update {
+            it.copy(
+                googleProfile = profile,
+                isDriveAuthorized = driveAuth,
+                lastCloudBackupTimeEpochMs = lastTime,
+                autoBackupFrequency = freq,
+                isAiEnabled = aiOn,
+                aiDataSharingPreference = aiPref
+            )
+        }
+    }
+
+    fun setAiEnabled(context: android.content.Context, enabled: Boolean) {
+        com.aistudio.moneydiary.mndytr.domain.service.AiAnalyticsService.setAiEnabled(context, enabled)
+        refreshCloudState(context)
+        showSnackbar(if (enabled) "AI সহায়তা চালু করা হয়েছে।" else "AI সহায়তা বন্ধ করা হয়েছে।")
+    }
+
+    fun setAiDataSharingPreference(context: android.content.Context, pref: com.aistudio.moneydiary.mndytr.domain.service.AiDataSharingPreference) {
+        com.aistudio.moneydiary.mndytr.domain.service.AiAnalyticsService.setDataSharingPreference(context, pref)
+        refreshCloudState(context)
+        showSnackbar("AI ডেটা শেয়ারিং পছন্দ হালনাগাদ করা হয়েছে।")
     }
 }
 

@@ -5,8 +5,28 @@ import android.view.WindowManager
 import androidx.fragment.app.FragmentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
@@ -14,9 +34,11 @@ import com.aistudio.moneydiary.mndytr.data.local.database.AppDatabase
 import com.aistudio.moneydiary.mndytr.domain.service.AppLockType
 import com.aistudio.moneydiary.mndytr.domain.service.SecurityService
 import com.aistudio.moneydiary.mndytr.ui.screens.MainAppScreen
+import com.aistudio.moneydiary.mndytr.ui.theme.KoriTypographyTokens
 import com.aistudio.moneydiary.mndytr.ui.theme.MyApplicationTheme
 import com.aistudio.moneydiary.mndytr.ui.viewmodel.DiaryViewModel
 import com.aistudio.moneydiary.mndytr.ui.viewmodel.DiaryViewModelFactory
+import kotlinx.coroutines.delay
 
 class MainActivity : FragmentActivity() {
 
@@ -52,10 +74,54 @@ class MainActivity : FragmentActivity() {
                 colorIdentity = state.colorIdentity,
                 themeMode = state.themeMode
             ) {
-                MainAppScreen(
-                    viewModel = viewModel,
-                    onBiometricAuthenticate = { showBiometricPrompt() }
-                )
+                var isColdSplashVisible by remember { mutableStateOf(true) }
+
+                LaunchedEffect(Unit) {
+                    delay(1200L)
+                    isColdSplashVisible = false
+                }
+
+                Box(modifier = Modifier.fillMaxSize()) {
+                    MainAppScreen(
+                        viewModel = viewModel,
+                        onBiometricAuthenticate = { showBiometricPrompt() }
+                    )
+
+                    AnimatedVisibility(
+                        visible = isColdSplashVisible,
+                        enter = fadeIn(tween(200)),
+                        exit = fadeOut(tween(400)),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(MaterialTheme.colorScheme.background),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Text(
+                                    text = "কড়ি",
+                                    style = KoriTypographyTokens.Wordmark.copy(
+                                        fontSize = 42.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                )
+                                Text(
+                                    text = "শান্ত ও ব্যক্তিগত আয়-ব্যয় ডায়েরি",
+                                    style = KoriTypographyTokens.SecondaryBody.copy(
+                                        fontSize = 15.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }

@@ -368,6 +368,6 @@ class FinancialDatabaseRobolectricTest {
         // We verify that the schema file directory is configured and exportable.
         val context = ApplicationProvider.getApplicationContext<Context>()
         assertNotNull(context)
-        assertEquals(2, db.openHelper.readableDatabase.version)
+        assertEquals(3, db.openHelper.readableDatabase.version)
     }
 }

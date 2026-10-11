@@ -63,7 +63,7 @@ class LocalBackupHardeningTest {
         val backupJson = LocalBackupRestoreService.exportBackup(context, db, includeNotes = false)
         val envelope = JSONObject(backupJson)
         
-        assertEquals("KORI_BACKUP_V1", envelope.getString("format_identifier"))
+        assertEquals("KORI_BACKUP_V2", envelope.getString("format_identifier"))
         assertEquals(1, envelope.getInt("entry_count"))
         assertFalse(envelope.getBoolean("includes_notes"))
         

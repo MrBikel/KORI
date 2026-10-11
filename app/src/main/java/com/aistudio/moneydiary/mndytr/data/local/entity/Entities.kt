@@ -282,6 +282,9 @@ data class PayableEntity(
         Index("transferGroupId"),
         Index("confirmationStatus"),
         Index("eventTimestampEpochMs"),
+        Index("partyId"),
+        Index("debtRecordId"),
+        Index("earnedReceivableId"),
         Index("isDeleted")
     ]
 )
@@ -299,9 +302,12 @@ data class TransactionEntity(
     val categoryId: String? = null,
     val subcategoryId: String? = null,
     val personId: String? = null,
+    val partyId: String? = null,
     val workId: String? = null,
     val receivableId: String? = null,
     val payableId: String? = null,
+    val debtRecordId: String? = null,
+    val earnedReceivableId: String? = null,
     val originalLedgerEventId: String? = null,
     val transferGroupId: String? = null,
     val parentTransactionId: String? = null,
@@ -519,3 +525,167 @@ data class AuditLogEntity(
     val deviceId: String = "local_device",
     val timestampEpochMs: Long = System.currentTimeMillis()
 )
+
+enum class PartyType {
+    PERSON,
+    ORGANIZATION,
+    OTHER
+}
+
+@Entity(
+    tableName = "parties",
+    indices = [
+        Index("displayName"),
+        Index("partyType"),
+        Index("isArchived"),
+        Index("isDeleted")
+    ]
+)
+data class PartyEntity(
+    @PrimaryKey
+    val id: String = UUID.randomUUID().toString(),
+    val displayName: String,
+    val partyType: String = PartyType.PERSON.name,
+    val phone: String? = null,
+    val email: String? = null,
+    val note: String? = null,
+    val isArchived: Boolean = false,
+    val isDeleted: Boolean = false,
+    val createdAtEpochMs: Long = System.currentTimeMillis(),
+    val updatedAtEpochMs: Long = System.currentTimeMillis()
+)
+
+enum class DebtType {
+    BORROWED, // আমি ঋণ নিয়েছি
+    LENT      // আমার কাছ থেকে ঋণ নিয়েছেন
+}
+
+enum class DebtRecordStatus {
+    ACTIVE,
+    PARTIALLY_SETTLED,
+    SETTLED,
+    OVERDUE,
+    CANCELLED
+}
+
+@Entity(
+    tableName = "debt_records",
+    foreignKeys = [
+        ForeignKey(
+            entity = PartyEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["partyId"],
+            onDelete = ForeignKey.RESTRICT
+        )
+    ],
+    indices = [
+        Index("partyId"),
+        Index("type"),
+        Index("status"),
+        Index("occurredAtEpochMs"),
+        Index("isDeleted")
+    ]
+)
+data class DebtRecordEntity(
+    @PrimaryKey
+    val id: String = UUID.randomUUID().toString(),
+    val partyId: String,
+    val type: String, // BORROWED or LENT
+    val principalPaisa: Long,
+    val occurredAtEpochMs: Long = System.currentTimeMillis(),
+    val dueAtEpochMs: Long? = null,
+    val notes: String? = null,
+    val status: String = DebtRecordStatus.ACTIVE.name,
+    val isDeleted: Boolean = false,
+    val createdAtEpochMs: Long = System.currentTimeMillis(),
+    val updatedAtEpochMs: Long = System.currentTimeMillis()
+)
+
+@Entity(
+    tableName = "debt_payments",
+    foreignKeys = [
+        ForeignKey(
+            entity = DebtRecordEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["debtId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [
+        Index("debtId"),
+        Index("occurredAtEpochMs"),
+        Index("isReversed")
+    ]
+)
+data class DebtPaymentEntity(
+    @PrimaryKey
+    val id: String = UUID.randomUUID().toString(),
+    val debtId: String,
+    val amountPaisa: Long,
+    val occurredAtEpochMs: Long = System.currentTimeMillis(),
+    val notes: String? = null,
+    val isReversed: Boolean = false,
+    val createdAtEpochMs: Long = System.currentTimeMillis(),
+    val updatedAtEpochMs: Long = System.currentTimeMillis()
+)
+
+@Entity(
+    tableName = "earned_receivables",
+    foreignKeys = [
+        ForeignKey(
+            entity = PartyEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["partyId"],
+            onDelete = ForeignKey.RESTRICT
+        )
+    ],
+    indices = [
+        Index("partyId"),
+        Index("status"),
+        Index("occurredAtEpochMs"),
+        Index("isDeleted")
+    ]
+)
+data class EarnedReceivableEntity(
+    @PrimaryKey
+    val id: String = UUID.randomUUID().toString(),
+    val partyId: String,
+    val title: String,
+    val agreedAmountPaisa: Long,
+    val occurredAtEpochMs: Long = System.currentTimeMillis(),
+    val dueAtEpochMs: Long? = null,
+    val notes: String? = null,
+    val status: String = DebtRecordStatus.ACTIVE.name,
+    val isDeleted: Boolean = false,
+    val createdAtEpochMs: Long = System.currentTimeMillis(),
+    val updatedAtEpochMs: Long = System.currentTimeMillis()
+)
+
+@Entity(
+    tableName = "receivable_payments",
+    foreignKeys = [
+        ForeignKey(
+            entity = EarnedReceivableEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["receivableId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [
+        Index("receivableId"),
+        Index("occurredAtEpochMs"),
+        Index("isReversed")
+    ]
+)
+data class ReceivablePaymentEntity(
+    @PrimaryKey
+    val id: String = UUID.randomUUID().toString(),
+    val receivableId: String,
+    val amountPaisa: Long,
+    val occurredAtEpochMs: Long = System.currentTimeMillis(),
+    val notes: String? = null,
+    val isReversed: Boolean = false,
+    val createdAtEpochMs: Long = System.currentTimeMillis(),
+    val updatedAtEpochMs: Long = System.currentTimeMillis()
+)
+
