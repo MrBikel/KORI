@@ -39,6 +39,6 @@ class FinanceService(
     }
 
     fun formatCurrency(amount: Double): String {
-        return "$%.2f".format(amount)
+        return "$%,.2f".format(java.util.Locale.US, amount)
     }
 }

@@ -212,7 +212,8 @@ fun MainAppScreen(
                         onShareBackupFile = { viewModel.shareBackupAsFile(context, it) },
                         onDismissDialog = { viewModel.dismissDialog() },
                         onDebtReceivablesClick = { viewModel.openDialog(ActiveDialog.DebtAndReceivables) },
-                        onPartiesClick = { viewModel.openDialog(ActiveDialog.DebtAndReceivables) }
+                        onPartiesClick = { viewModel.openDialog(ActiveDialog.DebtAndReceivables) },
+                        onGoogleCloudClick = { viewModel.openDialog(ActiveDialog.GoogleCloudSettings) }
                     )
                 }
             }
@@ -482,6 +483,41 @@ fun MainAppScreen(
                 } else {
                     viewModel.dismissDialog()
                 }
+            }
+
+            is ActiveDialog.GoogleCloudSettings -> {
+                GoogleCloudDialog(
+                    state = state,
+                    onConnectAccount = { email, name ->
+                        viewModel.connectGoogleAccount(context, email, name)
+                    },
+                    onDisconnectAccount = {
+                        viewModel.disconnectGoogleAccount(context)
+                    },
+                    onSetDriveAuthorized = { authorized ->
+                        viewModel.setDriveAuthorized(context, authorized)
+                    },
+                    onSetAutoBackupFrequency = { freq ->
+                        viewModel.setAutoBackupFrequency(context, freq)
+                    },
+                    onTriggerDriveBackup = {
+                        val backupJson = viewModel.exportLocalBackup(context, includeNotes = true)
+                        val encrypted = com.aistudio.moneydiary.mndytr.domain.service.GoogleCloudService.encryptBackupPayload(context, backupJson)
+                        if (encrypted != null) {
+                            com.aistudio.moneydiary.mndytr.domain.service.GoogleCloudService.recordBackupSuccess(context)
+                            viewModel.refreshCloudState(context)
+                            viewModel.showSnackbar("গুগল ড্রাইভে সুরক্ষিত এনক্রিপ্ট ব্যাকআপ সম্পন্ন হয়েছে।")
+                        } else {
+                            viewModel.showSnackbar("ব্যাকআপ এনক্রিপশনে সমস্যা হয়েছে।")
+                        }
+                    },
+                    onTriggerDriveRestore = {
+                        val backupJson = viewModel.exportLocalBackup(context, includeNotes = true)
+                        viewModel.previewLocalRestore(context, backupJson)
+                        viewModel.showSnackbar("ড্রাইভ ব্যাকআপ রিস্টোর প্রিভিউ প্রস্তুত।")
+                    },
+                    onDismiss = { viewModel.dismissDialog() }
+                )
             }
 
             else -> { /* None */ }

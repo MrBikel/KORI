@@ -47,6 +47,7 @@ fun MoreScreen(
     onDismissDialog: () -> Unit,
     onDebtReceivablesClick: () -> Unit = {},
     onPartiesClick: () -> Unit = {},
+    onGoogleCloudClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -253,11 +254,11 @@ fun MoreScreen(
                     )
                     HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
                     MoreMenuItem(
-                        icon = Icons.Default.CloudQueue,
-                        iconTint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        title = "Cloud ও Backup",
-                        subtitle = "এখনো সংযুক্ত নয়",
-                        onClick = { showCloudNotice = true },
+                        icon = Icons.Default.CloudSync,
+                        iconTint = if (state.googleProfile.isConnected) LightKoriIncome else MaterialTheme.colorScheme.primary,
+                        title = "গুগল ড্রাইভ ও ক্লাউড ব্যাকআপ",
+                        subtitle = if (state.googleProfile.isConnected) "${state.googleProfile.email} (সংযুক্ত)" else "ড্রাইভে স্বয়ংক্রিয় ব্যাকআপ ও সিঙ্ক",
+                        onClick = onGoogleCloudClick,
                         tag = "cloud_sync_item"
                     )
                 }

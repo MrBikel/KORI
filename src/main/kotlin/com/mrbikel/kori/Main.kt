@@ -67,20 +67,20 @@ fun main() {
 
     println("KORI Finance Dashboard")
     println("Month: ${summary.month}")
-    println("Monthly budget: $${service.formatCurrency(summary.monthlyBudget)}")
-    println("Total income: $${service.formatCurrency(summary.totalIncome)}")
-    println("Total expenses: $${service.formatCurrency(summary.totalExpenses)}")
-    println("Net: $${service.formatCurrency(summary.net)}")
-    println("Remaining: $${service.formatCurrency(summary.remaining)}")
+    println("Monthly budget: ${service.formatCurrency(summary.monthlyBudget)}")
+    println("Total income: ${service.formatCurrency(summary.totalIncome)}")
+    println("Total expenses: ${service.formatCurrency(summary.totalExpenses)}")
+    println("Net: ${service.formatCurrency(summary.net)}")
+    println("Remaining: ${service.formatCurrency(summary.remaining)}")
     println("Risk level: ${summary.riskLevel}")
 
     if (summary.topCategory != null) {
-        println("Top spending category: ${summary.topCategory.first} - $${service.formatCurrency(summary.topCategory.second)}")
+        println("Top spending category: ${summary.topCategory.first} - ${service.formatCurrency(summary.topCategory.second)}")
     }
 
     println()
     println("Category breakdown:")
     summary.categories.forEach { (category, total) ->
-        println("- $category: $${service.formatCurrency(total)}")
+        println("- $category: ${service.formatCurrency(total)}")
     }
 }

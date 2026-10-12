@@ -1,15 +1,8 @@
 package com.mrbikel.kori.service
 
+import com.mrbikel.kori.model.BudgetSummary
 import com.mrbikel.kori.repository.BudgetRepository
 import kotlin.math.roundToInt
-
-data class BudgetSummary(
-    val monthlyBudget: Double,
-    val totalSpent: Double,
-    val remaining: Double,
-    val categories: Map<String, Double>,
-    val riskLevel: String,
-)
 
 class BudgetAnalyzer(
     private val monthlyBudget: Double,
@@ -31,10 +24,12 @@ class BudgetAnalyzer(
 
         return BudgetSummary(
             monthlyBudget = monthlyBudget,
+            totalExpenses = totalSpent,
             totalSpent = totalSpent,
             remaining = remaining,
             categories = categories,
             riskLevel = riskLevel,
+            topCategory = topCategory(),
         )
     }
 
@@ -43,7 +38,6 @@ class BudgetAnalyzer(
     }
 
     fun formatCurrency(amount: Double): String {
-        val rounded = (amount * 100.0).roundToInt() / 100.0
-        return "$%.2f".format(rounded)
+        return "$%,.2f".format(java.util.Locale.US, amount)
     }
 }
