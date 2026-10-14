@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.Color
 // ==========================================
 
 enum class KoriColorIdentity(val id: String, val titleBn: String, val descriptionBn: String) {
+    NAVY_BLUE("NAVY_BLUE", "নেভি ব্লু গ্লাস", "প্রিমিয়াম নেভি ব্লু ও লিকুইড গ্লাস আভা (ডিফল্ট)"),
     INK_AND_PAPER("INK_AND_PAPER", "কালি ও কাগজ", "শান্ত ডিফল্ট থিম • ক্লাসিক ফরেস্ট ও অফ-হোয়াইট"),
     MIDNIGHT_INDIGO("MIDNIGHT_INDIGO", "মধ্যরাতের নীল", "গম্ভীর ইন্ডিগো ও পরিচ্ছন্ন নীলাভ আভা"),
     BURGUNDY_JOURNAL("BURGUNDY_JOURNAL", "বারগান্ডি ডায়েরি", "উষ্ণ বারগান্ডি ও মার্জিত ডায়েরির অনুভূতি")
@@ -36,7 +37,48 @@ data class KoriThemeColors(
 )
 
 // ------------------------------------------
-// THEME A: INK AND PAPER (Default)
+// THEME: NAVY BLUE LIQUID GLASS (Primary Base)
+// ------------------------------------------
+val NavyBlueLight = KoriThemeColors(
+    canvas = Color(0xFFF0F4FA),
+    surface = Color(0xF2FFFFFF),
+    raisedSurface = Color(0xFFFFFFFF),
+    primary = Color(0xFF0F294D),
+    primarySoft = Color(0xFFE2E8F0),
+    textMain = Color(0xFF0F172A),
+    textMuted = Color(0xFF475569),
+    border = Color(0x333B82F6),
+    income = Color(0xFF059669),
+    expense = Color(0xFFDC2626),
+    insight = Color(0xFF0284C7),
+    warning = Color(0xFFD97706),
+    error = Color(0xFFDC2626),
+    success = Color(0xFF059669),
+    disabledText = Color(0xFF94A3B8),
+    disabledSurface = Color(0xFFE2E8F0)
+)
+
+val NavyBlueDark = KoriThemeColors(
+    canvas = Color(0xFF0B132B),
+    surface = Color(0xCC111C38),
+    raisedSurface = Color(0xFF1C2541),
+    primary = Color(0xFF38BDF8),
+    primarySoft = Color(0xFF1E3A5F),
+    textMain = Color(0xFFF8FAFC),
+    textMuted = Color(0xFF94A3B8),
+    border = Color(0x2638BDF8),
+    income = Color(0xFF10B981),
+    expense = Color(0xFFF87171),
+    insight = Color(0xFF38BDF8),
+    warning = Color(0xFFFBBF24),
+    error = Color(0xFFF87171),
+    success = Color(0xFF10B981),
+    disabledText = Color(0xFF64748B),
+    disabledSurface = Color(0xFF1E293B)
+)
+
+// ------------------------------------------
+// THEME A: INK AND PAPER
 // ------------------------------------------
 val InkAndPaperLight = KoriThemeColors(
     canvas = Color(0xFFF7F3EA),

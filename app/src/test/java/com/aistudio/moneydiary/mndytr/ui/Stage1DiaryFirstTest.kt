@@ -327,9 +327,10 @@ class Stage1DiaryFirstTest {
     // 13. Room Schema Version 2 and Migration 1->2
     @Test
     fun test13_roomSchemaVersion2AndMigration() {
-        assertEquals(3, AppDatabase.getInstance(context).openHelper.readableDatabase.version)
+        assertEquals(4, AppDatabase.getInstance(context).openHelper.readableDatabase.version)
         assertNotNull(AppDatabase.MIGRATION_1_2)
         assertNotNull(AppDatabase.MIGRATION_2_3)
+        assertNotNull(AppDatabase.MIGRATION_3_4)
     }
 
     // 14. Local notification channel creation safe execution

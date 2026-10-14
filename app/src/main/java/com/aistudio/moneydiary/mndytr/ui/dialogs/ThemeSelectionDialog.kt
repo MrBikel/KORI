@@ -130,6 +130,7 @@ private fun ThemeOptionCard(
 ) {
     val isDark = themeMode == "DARK"
     val colors = when (identity) {
+        KoriColorIdentity.NAVY_BLUE -> if (isDark) NavyBlueDark else NavyBlueLight
         KoriColorIdentity.INK_AND_PAPER -> if (isDark) InkAndPaperDark else InkAndPaperLight
         KoriColorIdentity.MIDNIGHT_INDIGO -> if (isDark) MidnightIndigoDark else MidnightIndigoLight
         KoriColorIdentity.BURGUNDY_JOURNAL -> if (isDark) BurgundyJournalDark else BurgundyJournalLight

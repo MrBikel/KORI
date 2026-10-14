@@ -1,5 +1,6 @@
 package com.aistudio.moneydiary.mndytr.ui.screens
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,6 +13,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -210,6 +213,15 @@ fun AnalysisScreen(
                             modifier = Modifier.padding(18.dp),
                             verticalArrangement = Arrangement.spacedBy(14.dp)
                         ) {
+                            val totalSpent = insights.categoryShares.sumOf { it.amountPaisa }
+                            CategoryDonutChart(
+                                shares = insights.categoryShares,
+                                totalExpensePaisa = totalSpent,
+                                useBengaliDigits = state.useBengaliDigits,
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            )
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
+
                             insights.categoryShares.take(5).forEach { share ->
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
@@ -444,3 +456,58 @@ fun GoalProgressCard(
         }
     }
 }
+
+@Composable
+fun CategoryDonutChart(
+    shares: List<com.aistudio.moneydiary.mndytr.domain.model.CategoryShare>,
+    totalExpensePaisa: Long,
+    useBengaliDigits: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val chartColors = remember {
+        listOf(
+            Color(0xFF2D4A3E),
+            Color(0xFFB3543A),
+            Color(0xFFC49A45),
+            Color(0xFF456B8A),
+            Color(0xFF7A5882),
+            Color(0xFF647A60)
+        )
+    }
+
+    Box(
+        modifier = modifier.fillMaxWidth(),
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(modifier = Modifier.size(160.dp)) {
+            val strokeWidth = 24.dp.toPx()
+            var startAngle = -90f
+            val total = shares.sumOf { it.amountPaisa }.coerceAtLeast(1L).toFloat()
+
+            shares.take(6).forEachIndexed { index, share ->
+                val sweep = (share.amountPaisa.toFloat() / total) * 360f
+                val color = chartColors[index % chartColors.size]
+                drawArc(
+                    color = color,
+                    startAngle = startAngle,
+                    sweepAngle = sweep.coerceAtLeast(1f),
+                    useCenter = false,
+                    style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+                )
+                startAngle += sweep
+            }
+        }
+
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = "মোট ব্যয়",
+                style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+            )
+            Text(
+                text = BengaliFormatter.formatPaisa(totalExpensePaisa, useBengaliDigits = useBengaliDigits, showDecimals = false),
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+            )
+        }
+    }
+}
+

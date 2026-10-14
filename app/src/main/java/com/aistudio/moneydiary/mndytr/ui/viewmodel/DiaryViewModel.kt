@@ -1085,6 +1085,33 @@ class DiaryViewModel(
         return true
     }
 
+    fun previewCsvImport(csvText: String): com.aistudio.moneydiary.mndytr.domain.service.CsvImportPreview {
+        return com.aistudio.moneydiary.mndytr.domain.service.CsvImportService.previewCsv(db, csvText)
+    }
+
+    fun confirmCsvImport(
+        context: android.content.Context,
+        preview: com.aistudio.moneydiary.mndytr.domain.service.CsvImportPreview,
+        skipDuplicates: Boolean = true
+    ) {
+        viewModelScope.launch(ioDispatcher) {
+            val result = com.aistudio.moneydiary.mndytr.domain.service.CsvImportService.executeImport(context, db, preview, skipDuplicates)
+            withContext(Dispatchers.Main) {
+                when (result) {
+                    is com.aistudio.moneydiary.mndytr.domain.service.CsvImportResult.Success -> {
+                        viewModelScope.launch(ioDispatcher) {
+                            refreshNow()
+                        }
+                        showSnackbar("সফলভাবে ${result.importedCount}টি লেনদেন আমদানি হয়েছে (${result.skippedDuplicates}টি ডুপ্লিকেট বাদ)।")
+                    }
+                    is com.aistudio.moneydiary.mndytr.domain.service.CsvImportResult.Failure -> {
+                        showSnackbar(result.messageBn)
+                    }
+                }
+            }
+        }
+    }
+
     // --- DEBT & RECEIVABLE ACTIONS ---
     fun borrowMoney(
         partyName: String,

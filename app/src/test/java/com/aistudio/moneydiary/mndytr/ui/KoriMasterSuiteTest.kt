@@ -344,7 +344,8 @@ class KoriMasterSuiteTest {
     fun testRoomV3MigrationAndSchema() {
         assertNotNull(AppDatabase.MIGRATION_1_2)
         assertNotNull(AppDatabase.MIGRATION_2_3)
-        assertEquals(3, db.openHelper.readableDatabase.version)
+        assertNotNull(AppDatabase.MIGRATION_3_4)
+        assertEquals(4, db.openHelper.readableDatabase.version)
     }
 
     // 11. Debt, Loan, and Earned Receivable Accounting Data Flow

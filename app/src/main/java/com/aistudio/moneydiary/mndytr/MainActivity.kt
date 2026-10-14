@@ -93,33 +93,7 @@ class MainActivity : FragmentActivity() {
                         exit = fadeOut(tween(400)),
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(MaterialTheme.colorScheme.background),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                Text(
-                                    text = "কড়ি",
-                                    style = KoriTypographyTokens.Wordmark.copy(
-                                        fontSize = 42.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                )
-                                Text(
-                                    text = "শান্ত ও ব্যক্তিগত আয়-ব্যয় ডায়েরি",
-                                    style = KoriTypographyTokens.SecondaryBody.copy(
-                                        fontSize = 15.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                )
-                            }
-                        }
+                        com.aistudio.moneydiary.mndytr.ui.components.StartupCoinAnimation()
                     }
                 }
             }

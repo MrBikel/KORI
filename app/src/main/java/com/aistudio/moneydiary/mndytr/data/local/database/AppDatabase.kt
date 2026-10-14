@@ -30,9 +30,21 @@ import com.aistudio.moneydiary.mndytr.data.local.entity.*
         DebtRecordEntity::class,
         DebtPaymentEntity::class,
         EarnedReceivableEntity::class,
-        ReceivablePaymentEntity::class
+        ReceivablePaymentEntity::class,
+        TransactionLineItemEntity::class,
+        InvoiceEntity::class,
+        InvoiceItemEntity::class,
+        LifePlanEntity::class,
+        PlanMilestoneEntity::class,
+        IdeaEntity::class,
+        PersonalNoteEntity::class,
+        VaultItemEntity::class,
+        ShoppingListEntity::class,
+        ShoppingItemEntity::class,
+        PersonalContactEntity::class,
+        ProgressAuditEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -57,6 +69,13 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun debtPaymentDao(): DebtPaymentDao
     abstract fun earnedReceivableDao(): EarnedReceivableDao
     abstract fun receivablePaymentDao(): ReceivablePaymentDao
+    abstract fun transactionLineItemDao(): TransactionLineItemDao
+    abstract fun invoiceDao(): InvoiceDao
+    abstract fun lifePlanDao(): LifePlanDao
+    abstract fun ideaDao(): IdeaDao
+    abstract fun personalNoteDao(): PersonalNoteDao
+    abstract fun shoppingListDao(): ShoppingListDao
+    abstract fun personalContactDao(): PersonalContactDao
 
     companion object {
         const val DATABASE_NAME = "my_money_diary.db"
@@ -220,6 +239,234 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // 1. Transaction line items
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `transaction_line_items` (
+                        `id` TEXT NOT NULL,
+                        `transactionId` TEXT NOT NULL,
+                        `description` TEXT NOT NULL,
+                        `amountPaisa` INTEGER NOT NULL,
+                        `categoryId` TEXT,
+                        `notes` TEXT,
+                        `createdAtEpochMs` INTEGER NOT NULL,
+                        PRIMARY KEY(`id`),
+                        FOREIGN KEY(`transactionId`) REFERENCES `transactions`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_transaction_line_items_transactionId` ON `transaction_line_items` (`transactionId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_transaction_line_items_categoryId` ON `transaction_line_items` (`categoryId`)")
+
+                // 2. Invoices & Items
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `invoices` (
+                        `id` TEXT NOT NULL,
+                        `invoiceNumber` TEXT NOT NULL,
+                        `issueDateEpochMs` INTEGER NOT NULL,
+                        `dueDateEpochMs` INTEGER,
+                        `senderName` TEXT NOT NULL,
+                        `senderContact` TEXT,
+                        `recipientName` TEXT NOT NULL,
+                        `recipientContact` TEXT,
+                        `partyId` TEXT,
+                        `currency` TEXT NOT NULL,
+                        `subtotalPaisa` INTEGER NOT NULL,
+                        `discountPaisa` INTEGER NOT NULL,
+                        `taxPaisa` INTEGER NOT NULL,
+                        `totalPaisa` INTEGER NOT NULL,
+                        `status` TEXT NOT NULL,
+                        `notes` TEXT,
+                        `isDeleted` INTEGER NOT NULL,
+                        `createdAtEpochMs` INTEGER NOT NULL,
+                        `updatedAtEpochMs` INTEGER NOT NULL,
+                        PRIMARY KEY(`id`)
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_invoices_invoiceNumber` ON `invoices` (`invoiceNumber`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_invoices_status` ON `invoices` (`status`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_invoices_partyId` ON `invoices` (`partyId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_invoices_isDeleted` ON `invoices` (`isDeleted`)")
+
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `invoice_items` (
+                        `id` TEXT NOT NULL,
+                        `invoiceId` TEXT NOT NULL,
+                        `description` TEXT NOT NULL,
+                        `quantity` REAL NOT NULL,
+                        `unitRatePaisa` INTEGER NOT NULL,
+                        `totalPaisa` INTEGER NOT NULL,
+                        PRIMARY KEY(`id`),
+                        FOREIGN KEY(`invoiceId`) REFERENCES `invoices`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_invoice_items_invoiceId` ON `invoice_items` (`invoiceId`)")
+
+                // 3. Life Plans & Milestones
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `life_plans` (
+                        `id` TEXT NOT NULL,
+                        `title` TEXT NOT NULL,
+                        `goalDescription` TEXT,
+                        `startDateEpochMs` INTEGER NOT NULL,
+                        `targetDateEpochMs` INTEGER,
+                        `estimatedBudgetPaisa` INTEGER NOT NULL,
+                        `progressPercentage` INTEGER NOT NULL,
+                        `status` TEXT NOT NULL,
+                        `notes` TEXT,
+                        `isDeleted` INTEGER NOT NULL,
+                        `createdAtEpochMs` INTEGER NOT NULL,
+                        `updatedAtEpochMs` INTEGER NOT NULL,
+                        PRIMARY KEY(`id`)
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_life_plans_status` ON `life_plans` (`status`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_life_plans_isDeleted` ON `life_plans` (`isDeleted`)")
+
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `plan_milestones` (
+                        `id` TEXT NOT NULL,
+                        `planId` TEXT NOT NULL,
+                        `title` TEXT NOT NULL,
+                        `targetDateEpochMs` INTEGER,
+                        `isCompleted` INTEGER NOT NULL,
+                        `completedAtEpochMs` INTEGER,
+                        PRIMARY KEY(`id`),
+                        FOREIGN KEY(`planId`) REFERENCES `life_plans`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_plan_milestones_planId` ON `plan_milestones` (`planId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_plan_milestones_isCompleted` ON `plan_milestones` (`isCompleted`)")
+
+                // 4. Ideas
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `ideas` (
+                        `id` TEXT NOT NULL,
+                        `title` TEXT NOT NULL,
+                        `details` TEXT,
+                        `tags` TEXT,
+                        `nextAction` TEXT,
+                        `stage` TEXT NOT NULL,
+                        `isDeleted` INTEGER NOT NULL,
+                        `createdAtEpochMs` INTEGER NOT NULL,
+                        `updatedAtEpochMs` INTEGER NOT NULL,
+                        PRIMARY KEY(`id`)
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_ideas_stage` ON `ideas` (`stage`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_ideas_isDeleted` ON `ideas` (`isDeleted`)")
+
+                // 5. Personal Notes
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `personal_notes` (
+                        `id` TEXT NOT NULL,
+                        `title` TEXT NOT NULL,
+                        `content` TEXT NOT NULL,
+                        `tags` TEXT,
+                        `isPinned` INTEGER NOT NULL,
+                        `isArchived` INTEGER NOT NULL,
+                        `isDeleted` INTEGER NOT NULL,
+                        `reminderEpochMs` INTEGER,
+                        `createdAtEpochMs` INTEGER NOT NULL,
+                        `updatedAtEpochMs` INTEGER NOT NULL,
+                        PRIMARY KEY(`id`)
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_personal_notes_isPinned` ON `personal_notes` (`isPinned`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_personal_notes_isArchived` ON `personal_notes` (`isArchived`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_personal_notes_isDeleted` ON `personal_notes` (`isDeleted`)")
+
+                // 6. Vault Items
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `vault_items` (
+                        `id` TEXT NOT NULL,
+                        `title` TEXT NOT NULL,
+                        `contentOrValue` TEXT NOT NULL,
+                        `category` TEXT NOT NULL,
+                        `notes` TEXT,
+                        `isDeleted` INTEGER NOT NULL,
+                        `createdAtEpochMs` INTEGER NOT NULL,
+                        `updatedAtEpochMs` INTEGER NOT NULL,
+                        PRIMARY KEY(`id`)
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_vault_items_category` ON `vault_items` (`category`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_vault_items_isDeleted` ON `vault_items` (`isDeleted`)")
+
+                // 7. Shopping Lists & Items
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `shopping_lists` (
+                        `id` TEXT NOT NULL,
+                        `name` TEXT NOT NULL,
+                        `targetDateEpochMs` INTEGER,
+                        `totalEstimatedPaisa` INTEGER NOT NULL,
+                        `totalActualPaisa` INTEGER NOT NULL,
+                        `isArchived` INTEGER NOT NULL,
+                        `isDeleted` INTEGER NOT NULL,
+                        `createdAtEpochMs` INTEGER NOT NULL,
+                        PRIMARY KEY(`id`)
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_shopping_lists_isArchived` ON `shopping_lists` (`isArchived`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_shopping_lists_isDeleted` ON `shopping_lists` (`isDeleted`)")
+
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `shopping_items` (
+                        `id` TEXT NOT NULL,
+                        `listId` TEXT NOT NULL,
+                        `itemName` TEXT NOT NULL,
+                        `quantity` TEXT,
+                        `estimatedPricePaisa` INTEGER NOT NULL,
+                        `actualPricePaisa` INTEGER NOT NULL,
+                        `isPurchased` INTEGER NOT NULL,
+                        `linkedTransactionId` TEXT,
+                        `priority` TEXT NOT NULL,
+                        PRIMARY KEY(`id`),
+                        FOREIGN KEY(`listId`) REFERENCES `shopping_lists`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_shopping_items_listId` ON `shopping_items` (`listId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_shopping_items_isPurchased` ON `shopping_items` (`isPurchased`)")
+
+                // 8. Personal Contacts
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `personal_contacts` (
+                        `id` TEXT NOT NULL,
+                        `name` TEXT NOT NULL,
+                        `phoneNumber` TEXT,
+                        `email` TEXT,
+                        `relationshipOrRole` TEXT,
+                        `notes` TEXT,
+                        `isDeleted` INTEGER NOT NULL,
+                        `createdAtEpochMs` INTEGER NOT NULL,
+                        PRIMARY KEY(`id`)
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_personal_contacts_name` ON `personal_contacts` (`name`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_personal_contacts_isDeleted` ON `personal_contacts` (`isDeleted`)")
+
+                // 9. Progress Audits
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `progress_audits` (
+                        `id` TEXT NOT NULL,
+                        `auditDateEpochMs` INTEGER NOT NULL,
+                        `whatWasPlanned` TEXT NOT NULL,
+                        `whatWasCompleted` TEXT NOT NULL,
+                        `whatRemains` TEXT NOT NULL,
+                        `blockers` TEXT,
+                        `costIncurredPaisa` INTEGER NOT NULL,
+                        `nextAction` TEXT,
+                        `progressPercentage` INTEGER NOT NULL,
+                        `isDeleted` INTEGER NOT NULL,
+                        `createdAtEpochMs` INTEGER NOT NULL,
+                        PRIMARY KEY(`id`)
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_progress_audits_auditDateEpochMs` ON `progress_audits` (`auditDateEpochMs`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_progress_audits_isDeleted` ON `progress_audits` (`isDeleted`)")
+            }
+        }
+
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
@@ -230,8 +477,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     DATABASE_NAME
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
-                    .fallbackToDestructiveMigration(false)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                     .build()
                 INSTANCE = instance
                 instance

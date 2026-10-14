@@ -99,6 +99,8 @@ class DiaryViewModelRobolectricTest {
             necessity = NecessityClassification.ESSENTIAL
         )
         advanceUntilIdle()
+        viewModel.refreshNow()
+        advanceUntilIdle()
 
         val state = viewModel.uiState.value
         assertTrue(state.todaySummary.hasEntriesToday)

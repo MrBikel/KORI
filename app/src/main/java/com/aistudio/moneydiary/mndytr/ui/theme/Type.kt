@@ -10,187 +10,324 @@ import com.aistudio.moneydiary.mndytr.R
 
 // ==========================================
 // KORI TYPOGRAPHY SYSTEM
-// Primary UI: Hind Siliguri (Regular, Medium, SemiBold, Bold)
-// Editorial Accent: Noto Serif Bengali (Regular, Medium, SemiBold)
+// Primary Bengali Typeface: Adorsholipi (bundled locally)
+// Primary English Typeface: Times New Roman (Serif)
 // ==========================================
 
-val HindSiliguriFontFamily = FontFamily(
-    Font(R.font.hind_siliguri_regular, FontWeight.Normal),
-    Font(R.font.hind_siliguri_medium, FontWeight.Medium),
-    Font(R.font.hind_siliguri_semibold, FontWeight.SemiBold),
-    Font(R.font.hind_siliguri_bold, FontWeight.Bold)
+val AdorsholipiFontFamily = FontFamily(
+    Font(R.font.adorsholipi, FontWeight.Normal),
+    Font(R.font.adorsholipi, FontWeight.Medium),
+    Font(R.font.adorsholipi, FontWeight.SemiBold),
+    Font(R.font.adorsholipi, FontWeight.Bold)
 )
 
-val NotoSerifBengaliFontFamily = FontFamily(
-    Font(R.font.noto_serif_bengali_regular, FontWeight.Normal),
-    Font(R.font.noto_serif_bengali_medium, FontWeight.Medium),
-    Font(R.font.noto_serif_bengali_semibold, FontWeight.SemiBold)
-)
+val TimesNewRomanFontFamily = FontFamily.Serif
+
+// Backward-compatible aliases mapped to Adorsholipi
+val HindSiliguriFontFamily = AdorsholipiFontFamily
+val NotoSerifBengaliFontFamily = AdorsholipiFontFamily
 
 // Specific Editorial & Amount Typography Tokens
 object KoriTypographyTokens {
-    // Wordmark: Noto Serif Bengali SemiBold 26sp, Line height 34sp
+    // Wordmark: Adorsholipi SemiBold 26sp
     val Wordmark = TextStyle(
-        fontFamily = NotoSerifBengaliFontFamily,
+        fontFamily = AdorsholipiFontFamily,
         fontWeight = FontWeight.SemiBold,
         fontSize = 26.sp,
         lineHeight = 34.sp,
         letterSpacing = 0.sp
     )
 
-    // Primary amount: Hind Siliguri SemiBold 34sp, Line height 42sp
+    // Primary amount: Adorsholipi SemiBold 34sp
     val PrimaryAmount = TextStyle(
-        fontFamily = HindSiliguriFontFamily,
+        fontFamily = AdorsholipiFontFamily,
         fontWeight = FontWeight.SemiBold,
         fontSize = 34.sp,
         lineHeight = 42.sp,
         letterSpacing = 0.sp
     )
 
-    // Secondary amount: Hind Siliguri SemiBold 22sp, Line height 30sp
+    // Secondary amount: Adorsholipi SemiBold 22sp
     val SecondaryAmount = TextStyle(
-        fontFamily = HindSiliguriFontFamily,
+        fontFamily = AdorsholipiFontFamily,
         fontWeight = FontWeight.SemiBold,
         fontSize = 22.sp,
         lineHeight = 30.sp,
         letterSpacing = 0.sp
     )
 
-    // Transaction amount: Hind Siliguri Medium 17sp, Line height 24sp
+    // Transaction amount: Adorsholipi Medium 17sp
     val TransactionAmount = TextStyle(
-        fontFamily = HindSiliguriFontFamily,
+        fontFamily = AdorsholipiFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 17.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.sp
     )
 
-    // Diary date: Noto Serif Bengali Medium 21sp, Line height 30sp
+    // Diary date: Adorsholipi Medium 21sp
     val DiaryDate = TextStyle(
-        fontFamily = NotoSerifBengaliFontFamily,
+        fontFamily = AdorsholipiFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 21.sp,
         lineHeight = 30.sp,
         letterSpacing = 0.sp
     )
 
-    // Screen title: Hind Siliguri SemiBold 22sp, Line height 30sp
+    // Screen title: Adorsholipi SemiBold 22sp
     val ScreenTitle = TextStyle(
-        fontFamily = HindSiliguriFontFamily,
+        fontFamily = AdorsholipiFontFamily,
         fontWeight = FontWeight.SemiBold,
         fontSize = 22.sp,
         lineHeight = 30.sp,
         letterSpacing = 0.sp
     )
 
-    // Section title: Hind Siliguri SemiBold 18sp, Line height 26sp
+    // Section title: Adorsholipi SemiBold 18sp
     val SectionTitle = TextStyle(
-        fontFamily = HindSiliguriFontFamily,
+        fontFamily = AdorsholipiFontFamily,
         fontWeight = FontWeight.SemiBold,
         fontSize = 18.sp,
         lineHeight = 26.sp,
         letterSpacing = 0.sp
     )
 
-    // Entry title: Hind Siliguri Medium 16sp, Line height 24sp
+    // Entry title: Adorsholipi Medium 16sp
     val EntryTitle = TextStyle(
-        fontFamily = HindSiliguriFontFamily,
+        fontFamily = AdorsholipiFontFamily,
         fontWeight = FontWeight.Medium,
+        fontSize = 16.sp,
+        lineHeight = 22.sp,
+        letterSpacing = 0.sp
+    )
+
+    // Body: Adorsholipi Regular 16sp
+    val Body = TextStyle(
+        fontFamily = AdorsholipiFontFamily,
+        fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.sp
     )
 
-    // Body: Hind Siliguri Regular 16sp, Line height 25sp
-    val Body = TextStyle(
-        fontFamily = HindSiliguriFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
-        lineHeight = 25.sp,
-        letterSpacing = 0.sp
-    )
+    // Primary body alias
+    val PrimaryBody = Body
 
-    // Secondary body: Hind Siliguri Regular 14sp, Line height 22sp
+    // Secondary body / Caption: Adorsholipi Regular 14sp
     val SecondaryBody = TextStyle(
-        fontFamily = HindSiliguriFontFamily,
+        fontFamily = AdorsholipiFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
-        lineHeight = 22.sp,
+        lineHeight = 20.sp,
         letterSpacing = 0.sp
     )
 
-    // Metadata: Hind Siliguri Regular 13sp, Line height 19sp
+    // Metadata: Adorsholipi Regular 13sp
     val Metadata = TextStyle(
-        fontFamily = HindSiliguriFontFamily,
+        fontFamily = AdorsholipiFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 13.sp,
-        lineHeight = 19.sp,
+        lineHeight = 18.sp,
         letterSpacing = 0.sp
     )
 
-    // Primary button: Hind Siliguri Medium 16sp, Line height 22sp
+    // Primary button: Adorsholipi SemiBold 16sp
     val PrimaryButton = TextStyle(
-        fontFamily = HindSiliguriFontFamily,
-        fontWeight = FontWeight.Medium,
+        fontFamily = AdorsholipiFontFamily,
+        fontWeight = FontWeight.SemiBold,
         fontSize = 16.sp,
         lineHeight = 22.sp,
         letterSpacing = 0.sp
     )
 
-    // Bottom navigation: Hind Siliguri Medium 13sp, Line height 18sp
+    // Bottom nav: Adorsholipi Medium 13sp
     val BottomNav = TextStyle(
-        fontFamily = HindSiliguriFontFamily,
+        fontFamily = AdorsholipiFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 13.sp,
         lineHeight = 18.sp,
         letterSpacing = 0.sp
     )
 
-    // Form input: Hind Siliguri Regular 17sp, Line height 25sp
+    // Form input: Adorsholipi Regular 17sp
     val FormInput = TextStyle(
-        fontFamily = HindSiliguriFontFamily,
+        fontFamily = AdorsholipiFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 17.sp,
-        lineHeight = 25.sp,
+        lineHeight = 24.sp,
         letterSpacing = 0.sp
     )
 
-    // Form label: Hind Siliguri Medium 14sp, Line height 20sp
+    // Form label: Adorsholipi Medium 14sp
     val FormLabel = TextStyle(
-        fontFamily = HindSiliguriFontFamily,
+        fontFamily = AdorsholipiFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 14.sp,
         lineHeight = 20.sp,
         letterSpacing = 0.sp
     )
 
-    // Empty-state title: Noto Serif Bengali Medium 20sp, Line height 30sp
+    // Empty state title: Adorsholipi SemiBold 20sp
     val EmptyStateTitle = TextStyle(
-        fontFamily = NotoSerifBengaliFontFamily,
-        fontWeight = FontWeight.Medium,
+        fontFamily = AdorsholipiFontFamily,
+        fontWeight = FontWeight.SemiBold,
         fontSize = 20.sp,
-        lineHeight = 30.sp,
+        lineHeight = 28.sp,
         letterSpacing = 0.sp
     )
 
-    // Insight title: Noto Serif Bengali Medium 18sp, Line height 27sp
+    // Insight title: Adorsholipi SemiBold 18sp
     val InsightTitle = TextStyle(
-        fontFamily = NotoSerifBengaliFontFamily,
-        fontWeight = FontWeight.Medium,
+        fontFamily = AdorsholipiFontFamily,
+        fontWeight = FontWeight.SemiBold,
         fontSize = 18.sp,
-        lineHeight = 27.sp,
+        lineHeight = 26.sp,
+        letterSpacing = 0.sp
+    )
+
+    // Chip / Tag: Adorsholipi Medium 13sp
+    val Chip = TextStyle(
+        fontFamily = AdorsholipiFontFamily,
+        fontWeight = FontWeight.Medium,
+        fontSize = 13.sp,
+        lineHeight = 18.sp,
+        letterSpacing = 0.sp
+    )
+
+    // TitleBn: Adorsholipi SemiBold 20sp
+    val TitleBn = TextStyle(
+        fontFamily = AdorsholipiFontFamily,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 20.sp,
+        lineHeight = 28.sp,
+        letterSpacing = 0.sp
+    )
+
+    // English Statement / Invoice Body: Times New Roman
+    val EnglishSerifBody = TextStyle(
+        fontFamily = TimesNewRomanFontFamily,
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.sp
+    )
+
+    val EnglishSerifTitle = TextStyle(
+        fontFamily = TimesNewRomanFontFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 20.sp,
+        lineHeight = 26.sp,
         letterSpacing = 0.sp
     )
 }
 
-val AppTypography = Typography(
-    displayLarge = KoriTypographyTokens.PrimaryAmount,
-    headlineMedium = KoriTypographyTokens.Wordmark,
-    titleLarge = KoriTypographyTokens.SectionTitle,
-    titleMedium = KoriTypographyTokens.EntryTitle,
-    bodyLarge = KoriTypographyTokens.Body,
-    bodyMedium = KoriTypographyTokens.SecondaryBody,
-    labelLarge = KoriTypographyTokens.PrimaryButton,
-    labelMedium = KoriTypographyTokens.Metadata,
-    labelSmall = KoriTypographyTokens.BottomNav
+// Complete Material 3 Typography Scale using Adorsholipi
+val Typography = Typography(
+    displayLarge = TextStyle(
+        fontFamily = AdorsholipiFontFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 32.sp,
+        lineHeight = 40.sp,
+        letterSpacing = 0.sp
+    ),
+    displayMedium = TextStyle(
+        fontFamily = AdorsholipiFontFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 28.sp,
+        lineHeight = 36.sp,
+        letterSpacing = 0.sp
+    ),
+    displaySmall = TextStyle(
+        fontFamily = AdorsholipiFontFamily,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 24.sp,
+        lineHeight = 32.sp,
+        letterSpacing = 0.sp
+    ),
+    headlineLarge = TextStyle(
+        fontFamily = AdorsholipiFontFamily,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 22.sp,
+        lineHeight = 28.sp,
+        letterSpacing = 0.sp
+    ),
+    headlineMedium = TextStyle(
+        fontFamily = AdorsholipiFontFamily,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 20.sp,
+        lineHeight = 26.sp,
+        letterSpacing = 0.sp
+    ),
+    headlineSmall = TextStyle(
+        fontFamily = AdorsholipiFontFamily,
+        fontWeight = FontWeight.Medium,
+        fontSize = 18.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.sp
+    ),
+    titleLarge = TextStyle(
+        fontFamily = AdorsholipiFontFamily,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 18.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.sp
+    ),
+    titleMedium = TextStyle(
+        fontFamily = AdorsholipiFontFamily,
+        fontWeight = FontWeight.Medium,
+        fontSize = 16.sp,
+        lineHeight = 22.sp,
+        letterSpacing = 0.sp
+    ),
+    titleSmall = TextStyle(
+        fontFamily = AdorsholipiFontFamily,
+        fontWeight = FontWeight.Medium,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.sp
+    ),
+    bodyLarge = TextStyle(
+        fontFamily = AdorsholipiFontFamily,
+        fontWeight = FontWeight.Normal,
+        fontSize = 16.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.sp
+    ),
+    bodyMedium = TextStyle(
+        fontFamily = AdorsholipiFontFamily,
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.sp
+    ),
+    bodySmall = TextStyle(
+        fontFamily = AdorsholipiFontFamily,
+        fontWeight = FontWeight.Normal,
+        fontSize = 12.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.sp
+    ),
+    labelLarge = TextStyle(
+        fontFamily = AdorsholipiFontFamily,
+        fontWeight = FontWeight.Medium,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.sp
+    ),
+    labelMedium = TextStyle(
+        fontFamily = AdorsholipiFontFamily,
+        fontWeight = FontWeight.Medium,
+        fontSize = 12.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.sp
+    ),
+    labelSmall = TextStyle(
+        fontFamily = AdorsholipiFontFamily,
+        fontWeight = FontWeight.Medium,
+        fontSize = 11.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.sp
+    )
 )
+
+val AppTypography = Typography

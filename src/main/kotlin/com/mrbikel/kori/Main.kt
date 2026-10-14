@@ -4,12 +4,26 @@ import com.mrbikel.kori.model.FinancialTransaction
 import com.mrbikel.kori.model.TransactionType
 import com.mrbikel.kori.repository.FinanceRepository
 import com.mrbikel.kori.service.FinanceService
+import java.io.File
 import java.time.LocalDate
 import java.time.YearMonth
 
-fun main() {
-    val repository = FinanceRepository().apply {
-        addTransactions(
+fun main(args: Array<String> = emptyArray()) {
+    val repository = FinanceRepository()
+
+    // 1. Check for command line argument or auto-detected mobile export file
+    val backupFile = args.firstOrNull()?.let { File(it) }
+        ?: File("kori_export.json").takeIf { it.exists() }
+        ?: File("kori_backup.json").takeIf { it.exists() }
+
+    if (backupFile != null && backupFile.exists()) {
+        println("Bridge: Loading live mobile transactions from ${backupFile.name}...")
+        repository.loadFromJson(backupFile.readText())
+    }
+
+    // 2. Default sample transactions if no mobile export is present
+    if (repository.getTransactions().isEmpty()) {
+        repository.addTransactions(
             FinancialTransaction(
                 id = "txn-001",
                 title = "Salary",
@@ -61,7 +75,8 @@ fun main() {
         )
     }
 
-    val month = YearMonth.of(2026, 10)
+    val latestDate = repository.getTransactions().maxOfOrNull { it.date } ?: LocalDate.now()
+    val month = YearMonth.from(latestDate)
     val service = FinanceService(repository = repository, monthlyBudget = 4200.0)
     val summary = service.summarize(month)
 

@@ -83,15 +83,33 @@ fun SmartEntryDialog(
     // Parse whenever rawInput changes
     LaunchedEffect(rawInput) {
         if (rawInput.isNotBlank()) {
-            val result = SmartTextParser.parse(rawInput, availableAccounts, availableCategories)
-            parsedResult = result
-            if (result.isValid) {
-                editableAmountText = (result.amountPaisa / 100L).toString()
-                editableDesc = result.description
-                editableAccountId = result.suggestedAccount?.id ?: availableAccounts.firstOrNull()?.id ?: ""
-                editableCategoryId = result.suggestedCategory?.id ?: availableCategories.firstOrNull()?.id ?: ""
-                editableClientName = result.personName ?: "ক্লায়েন্ট"
-                editableWorkTitle = result.workTitle ?: "অনলাইন কাজ"
+            val smsResult = com.aistudio.moneydiary.mndytr.domain.service.SmsTransactionParser.parse(rawInput)
+            if (smsResult != null) {
+                editableAmountText = (smsResult.amountPaisa / 100L).toString()
+                editableDesc = smsResult.suggestedDescription
+                val eventCode = if (smsResult.type == com.aistudio.moneydiary.mndytr.domain.model.DiaryEntryType.INCOME) {
+                    com.aistudio.moneydiary.mndytr.domain.model.LedgerEventCode.TX_01_INCOME.name
+                } else {
+                    com.aistudio.moneydiary.mndytr.domain.model.LedgerEventCode.TX_02_EXPENSE.name
+                }
+                parsedResult = ParsedSmartEntry(
+                    rawText = rawInput,
+                    eventCode = eventCode,
+                    amountPaisa = smsResult.amountPaisa,
+                    description = smsResult.suggestedDescription,
+                    isValid = true
+                )
+            } else {
+                val result = SmartTextParser.parse(rawInput, availableAccounts, availableCategories)
+                parsedResult = result
+                if (result.isValid) {
+                    editableAmountText = (result.amountPaisa / 100L).toString()
+                    editableDesc = result.description
+                    editableAccountId = result.suggestedAccount?.id ?: availableAccounts.firstOrNull()?.id ?: ""
+                    editableCategoryId = result.suggestedCategory?.id ?: availableCategories.firstOrNull()?.id ?: ""
+                    editableClientName = result.personName ?: "ক্লায়েন্ট"
+                    editableWorkTitle = result.workTitle ?: "অনলাইন কাজ"
+                }
             }
         } else {
             parsedResult = null
@@ -159,7 +177,13 @@ fun SmartEntryDialog(
                         .horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    listOf("চা ১০ নগদ", "সিগারেট ২০", "রিকশা ৩০ বিকাশ", "রহিম অনলাইন কাজের টোকেন ১০০ বিকাশ", "Salary 25000 Bank").forEach { example ->
+                    listOf(
+                        "চা খেলাম ২০ টাকা",
+                        "ওষুধ কিনলাম ১৫০",
+                        "ক্লায়েন্ট থেকে ৫০০০ পেলাম",
+                        "বিকাশ পেমেন্ট Tk 350",
+                        "You have received Tk 500.00 from 017..."
+                    ).forEach { example ->
                         FilterChip(
                             selected = rawInput == example,
                             onClick = { rawInput = example },

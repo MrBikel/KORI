@@ -254,10 +254,10 @@ fun MoreScreen(
                     )
                     HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
                     MoreMenuItem(
-                        icon = Icons.Default.CloudSync,
-                        iconTint = if (state.googleProfile.isConnected) LightKoriIncome else MaterialTheme.colorScheme.primary,
-                        title = "গুগল ড্রাইভ ও ক্লাউড ব্যাকআপ",
-                        subtitle = if (state.googleProfile.isConnected) "${state.googleProfile.email} (সংযুক্ত)" else "ড্রাইভে স্বয়ংক্রিয় ব্যাকআপ ও সিঙ্ক",
+                        icon = Icons.Default.CloudOff,
+                        iconTint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        title = "ক্লাউড সিঙ্ক (অনুপলব্ধ)",
+                        subtitle = "ক্লাউড সিঙ্ক এই সংস্করণে যুক্ত নয় • অফলাইন-ফার্স্ট",
                         onClick = onGoogleCloudClick,
                         tag = "cloud_sync_item"
                     )
@@ -357,12 +357,17 @@ fun MoreScreen(
                         FilterChip(
                             selected = exportFormat == "CSV",
                             onClick = { exportFormat = "CSV" },
-                            label = { Text("CSV ফরম্যাট (Excel)") }
+                            label = { Text("CSV (Excel)") }
+                        )
+                        FilterChip(
+                            selected = exportFormat == "HTML",
+                            onClick = { exportFormat = "HTML" },
+                            label = { Text("স্টেটমেন্ট (HTML/PDF)") }
                         )
                         FilterChip(
                             selected = exportFormat == "JSON",
                             onClick = { exportFormat = "JSON" },
-                            label = { Text("JSON ফরম্যাট") }
+                            label = { Text("JSON ব্যাকআপ") }
                         )
                     }
                     Row(

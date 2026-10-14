@@ -9,7 +9,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 
 @Composable
 fun MyApplicationTheme(
-    colorIdentity: KoriColorIdentity = KoriColorIdentity.INK_AND_PAPER,
+    colorIdentity: KoriColorIdentity = KoriColorIdentity.NAVY_BLUE,
     themeMode: String = "SYSTEM", // "SYSTEM", "LIGHT", "DARK"
     darkTheme: Boolean = when (themeMode) {
         "DARK" -> true
@@ -19,6 +19,7 @@ fun MyApplicationTheme(
     content: @Composable () -> Unit,
 ) {
     val koriColors: KoriThemeColors = when (colorIdentity) {
+        KoriColorIdentity.NAVY_BLUE -> if (darkTheme) NavyBlueDark else NavyBlueLight
         KoriColorIdentity.INK_AND_PAPER -> if (darkTheme) InkAndPaperDark else InkAndPaperLight
         KoriColorIdentity.MIDNIGHT_INDIGO -> if (darkTheme) MidnightIndigoDark else MidnightIndigoLight
         KoriColorIdentity.BURGUNDY_JOURNAL -> if (darkTheme) BurgundyJournalDark else BurgundyJournalLight
