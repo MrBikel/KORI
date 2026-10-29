@@ -201,6 +201,167 @@ object LocalBackupRestoreService {
         }
         payloadObj.put("receivable_payments", recPaymentsArray)
 
+        // 11. Serialize accounts
+        val accounts = db.accountDao().getAll()
+        val accsArray = JSONArray()
+        for (acc in accounts) {
+            val obj = JSONObject()
+            obj.put("id", acc.id)
+            obj.put("name", acc.name)
+            obj.put("type", acc.type)
+            obj.put("currency", acc.currency)
+            obj.put("initialBalancePaisa", acc.initialBalancePaisa)
+            obj.put("colorHex", acc.colorHex)
+            obj.put("iconName", acc.iconName)
+            obj.put("displayOrder", acc.displayOrder)
+            obj.put("isArchived", acc.isArchived)
+            accsArray.put(obj)
+        }
+        payloadObj.put("accounts", accsArray)
+
+        // 12. Serialize Personal Notes
+        val notes = db.personalNoteDao().getAllNotesSync()
+        val notesArray = JSONArray()
+        for (note in notes) {
+            val obj = JSONObject()
+            obj.put("id", note.id)
+            obj.put("title", note.title)
+            obj.put("content", note.content)
+            obj.put("tags", note.tags ?: "")
+            obj.put("isPinned", note.isPinned)
+            obj.put("isArchived", note.isArchived)
+            notesArray.put(obj)
+        }
+        payloadObj.put("personal_notes", notesArray)
+
+        // 13. Serialize Life Plans & Milestones
+        val plans = db.lifePlanDao().getAllPlansSync()
+        val plansArray = JSONArray()
+        for (plan in plans) {
+            val obj = JSONObject()
+            obj.put("id", plan.id)
+            obj.put("title", plan.title)
+            obj.put("goalDescription", plan.goalDescription ?: "")
+            obj.put("startDateEpochMs", plan.startDateEpochMs)
+            plan.targetDateEpochMs?.let { obj.put("targetDateEpochMs", it) }
+            obj.put("estimatedBudgetPaisa", plan.estimatedBudgetPaisa)
+            obj.put("progressPercentage", plan.progressPercentage)
+            obj.put("status", plan.status)
+            plansArray.put(obj)
+        }
+        payloadObj.put("life_plans", plansArray)
+
+        val milestones = db.lifePlanDao().getAllMilestonesSync()
+        val milestonesArray = JSONArray()
+        for (m in milestones) {
+            val obj = JSONObject()
+            obj.put("id", m.id)
+            obj.put("planId", m.planId)
+            obj.put("title", m.title)
+            m.targetDateEpochMs?.let { obj.put("targetDateEpochMs", it) }
+            obj.put("isCompleted", m.isCompleted)
+            milestonesArray.put(obj)
+        }
+        payloadObj.put("plan_milestones", milestonesArray)
+
+        // 14. Serialize Ideas
+        val ideas = db.ideaDao().getAllIdeasSync()
+        val ideasArray = JSONArray()
+        for (idea in ideas) {
+            val obj = JSONObject()
+            obj.put("id", idea.id)
+            obj.put("title", idea.title)
+            obj.put("details", idea.details ?: "")
+            obj.put("tags", idea.tags ?: "")
+            obj.put("nextAction", idea.nextAction ?: "")
+            obj.put("stage", idea.stage)
+            ideasArray.put(obj)
+        }
+        payloadObj.put("ideas", ideasArray)
+
+        // 15. Serialize Shopping Lists & Items
+        val shoppingLists = db.shoppingListDao().getAllListsSync()
+        val listsArray = JSONArray()
+        for (list in shoppingLists) {
+            val obj = JSONObject()
+            obj.put("id", list.id)
+            obj.put("name", list.name)
+            list.targetDateEpochMs?.let { obj.put("targetDateEpochMs", it) }
+            obj.put("totalEstimatedPaisa", list.totalEstimatedPaisa)
+            obj.put("totalActualPaisa", list.totalActualPaisa)
+            obj.put("isArchived", list.isArchived)
+            listsArray.put(obj)
+        }
+        payloadObj.put("shopping_lists", listsArray)
+
+        val shoppingItems = db.shoppingListDao().getAllShoppingItemsSync()
+        val itemsArray = JSONArray()
+        for (item in shoppingItems) {
+            val obj = JSONObject()
+            obj.put("id", item.id)
+            obj.put("listId", item.listId)
+            obj.put("itemName", item.itemName)
+            obj.put("quantity", item.quantity ?: "")
+            obj.put("estimatedPricePaisa", item.estimatedPricePaisa)
+            obj.put("actualPricePaisa", item.actualPricePaisa)
+            obj.put("isPurchased", item.isPurchased)
+            obj.put("priority", item.priority)
+            itemsArray.put(obj)
+        }
+        payloadObj.put("shopping_items", itemsArray)
+
+        // 16. Serialize Contacts
+        val contacts = db.personalContactDao().getAllContactsSync()
+        val contactsArray = JSONArray()
+        for (contact in contacts) {
+            val obj = JSONObject()
+            obj.put("id", contact.id)
+            obj.put("name", contact.name)
+            obj.put("phoneNumber", contact.phoneNumber ?: "")
+            obj.put("email", contact.email ?: "")
+            obj.put("relationshipOrRole", contact.relationshipOrRole ?: "")
+            contactsArray.put(obj)
+        }
+        payloadObj.put("personal_contacts", contactsArray)
+
+        // 17. Serialize Invoices & Items
+        val invoices = db.invoiceDao().getAllInvoicesSync()
+        val invArray = JSONArray()
+        for (inv in invoices) {
+            val obj = JSONObject()
+            obj.put("id", inv.id)
+            obj.put("invoiceNumber", inv.invoiceNumber)
+            obj.put("issueDateEpochMs", inv.issueDateEpochMs)
+            inv.dueDateEpochMs?.let { obj.put("dueDateEpochMs", it) }
+            obj.put("senderName", inv.senderName)
+            obj.put("senderContact", inv.senderContact ?: "")
+            obj.put("recipientName", inv.recipientName)
+            obj.put("recipientContact", inv.recipientContact ?: "")
+            obj.put("currency", inv.currency)
+            obj.put("subtotalPaisa", inv.subtotalPaisa)
+            obj.put("discountPaisa", inv.discountPaisa)
+            obj.put("taxPaisa", inv.taxPaisa)
+            obj.put("totalPaisa", inv.totalPaisa)
+            obj.put("status", inv.status)
+            if (includeNotes) obj.put("notes", inv.notes ?: "")
+            invArray.put(obj)
+        }
+        payloadObj.put("invoices", invArray)
+
+        val invItems = db.invoiceDao().getAllInvoiceItemsSync()
+        val invItemsArray = JSONArray()
+        for (it in invItems) {
+            val obj = JSONObject()
+            obj.put("id", it.id)
+            obj.put("invoiceId", it.invoiceId)
+            obj.put("description", it.description)
+            obj.put("quantity", it.quantity)
+            obj.put("unitRatePaisa", it.unitRatePaisa)
+            obj.put("totalPaisa", it.totalPaisa)
+            invItemsArray.put(obj)
+        }
+        payloadObj.put("invoice_items", invItemsArray)
+
         // Wrap in Envelope
         val payloadStr = payloadObj.toString()
         val checksum = calculateSha256(payloadStr)
@@ -376,6 +537,76 @@ object LocalBackupRestoreService {
                                 stagingDb.receivablePaymentDao().insert(parseReceivablePayment(recPaymentsArray.getJSONObject(i)))
                             }
                         }
+
+                        if (payload.has("accounts")) {
+                            val accsArray = payload.getJSONArray("accounts")
+                            for (i in 0 until accsArray.length()) {
+                                stagingDb.accountDao().insert(parseAccount(accsArray.getJSONObject(i)))
+                            }
+                        }
+
+                        if (payload.has("personal_notes")) {
+                            val notesArray = payload.getJSONArray("personal_notes")
+                            for (i in 0 until notesArray.length()) {
+                                stagingDb.personalNoteDao().insertNoteSync(parseNote(notesArray.getJSONObject(i)))
+                            }
+                        }
+
+                        if (payload.has("life_plans")) {
+                            val plansArray = payload.getJSONArray("life_plans")
+                            for (i in 0 until plansArray.length()) {
+                                stagingDb.lifePlanDao().insertPlanSync(parsePlan(plansArray.getJSONObject(i)))
+                            }
+                        }
+
+                        if (payload.has("plan_milestones")) {
+                            val milestonesArray = payload.getJSONArray("plan_milestones")
+                            for (i in 0 until milestonesArray.length()) {
+                                stagingDb.lifePlanDao().insertMilestonesSync(listOf(parseMilestone(milestonesArray.getJSONObject(i))))
+                            }
+                        }
+
+                        if (payload.has("ideas")) {
+                            val ideasArray = payload.getJSONArray("ideas")
+                            for (i in 0 until ideasArray.length()) {
+                                stagingDb.ideaDao().insertIdeaSync(parseIdea(ideasArray.getJSONObject(i)))
+                            }
+                        }
+
+                        if (payload.has("shopping_lists")) {
+                            val listsArray = payload.getJSONArray("shopping_lists")
+                            for (i in 0 until listsArray.length()) {
+                                stagingDb.shoppingListDao().insertListSync(parseShoppingList(listsArray.getJSONObject(i)))
+                            }
+                        }
+
+                        if (payload.has("shopping_items")) {
+                            val itemsArray = payload.getJSONArray("shopping_items")
+                            for (i in 0 until itemsArray.length()) {
+                                stagingDb.shoppingListDao().insertItemsSync(listOf(parseShoppingItem(itemsArray.getJSONObject(i))))
+                            }
+                        }
+
+                        if (payload.has("personal_contacts")) {
+                            val contactsArray = payload.getJSONArray("personal_contacts")
+                            for (i in 0 until contactsArray.length()) {
+                                stagingDb.personalContactDao().insertContactSync(parseContact(contactsArray.getJSONObject(i)))
+                            }
+                        }
+
+                        if (payload.has("invoices")) {
+                            val invArray = payload.getJSONArray("invoices")
+                            for (i in 0 until invArray.length()) {
+                                stagingDb.invoiceDao().insertInvoiceSync(parseInvoice(invArray.getJSONObject(i)))
+                            }
+                        }
+
+                        if (payload.has("invoice_items")) {
+                            val invItemsArray = payload.getJSONArray("invoice_items")
+                            for (i in 0 until invItemsArray.length()) {
+                                stagingDb.invoiceDao().insertInvoiceItemsSync(listOf(parseInvoiceItem(invItemsArray.getJSONObject(i))))
+                            }
+                        }
                     }
                 } catch (e: Exception) {
                     return RestoreResult.Failure("ডেটা ইম্পোর্ট ব্যর্থ: ${e.localizedMessage}", "JSON_IMPORT_FAILED")
@@ -424,6 +655,7 @@ object LocalBackupRestoreService {
                     currentDb.runInTransaction {
                         currentDb.clearAllTables()
                         
+                        stagingDb.accountDao().getAll().forEach { currentDb.accountDao().insert(it) }
                         stagedParties.forEach { currentDb.partyDao().insert(it) }
                         stagedCats.forEach { currentDb.categoryDao().insert(it) }
                         stagedTxs.forEach { currentDb.ledgerEventDao().insert(it) }
@@ -432,6 +664,16 @@ object LocalBackupRestoreService {
                         stagedDebtPayments.forEach { currentDb.debtPaymentDao().insert(it) }
                         stagedRecs.forEach { currentDb.earnedReceivableDao().insert(it) }
                         stagedRecPayments.forEach { currentDb.receivablePaymentDao().insert(it) }
+
+                        stagingDb.personalNoteDao().getAllNotesSync().forEach { currentDb.personalNoteDao().insertNoteSync(it) }
+                        stagingDb.lifePlanDao().getAllPlansSync().forEach { currentDb.lifePlanDao().insertPlanSync(it) }
+                        stagingDb.lifePlanDao().getAllMilestonesSync().forEach { currentDb.lifePlanDao().insertMilestonesSync(listOf(it)) }
+                        stagingDb.ideaDao().getAllIdeasSync().forEach { currentDb.ideaDao().insertIdeaSync(it) }
+                        stagingDb.shoppingListDao().getAllListsSync().forEach { currentDb.shoppingListDao().insertListSync(it) }
+                        stagingDb.shoppingListDao().getAllShoppingItemsSync().forEach { currentDb.shoppingListDao().insertItemsSync(listOf(it)) }
+                        stagingDb.personalContactDao().getAllContactsSync().forEach { currentDb.personalContactDao().insertContactSync(it) }
+                        stagingDb.invoiceDao().getAllInvoicesSync().forEach { currentDb.invoiceDao().insertInvoiceSync(it) }
+                        stagingDb.invoiceDao().getAllInvoiceItemsSync().forEach { currentDb.invoiceDao().insertInvoiceItemsSync(listOf(it)) }
                         
                         stagingDb.appSettingDao().getAll().forEach { currentDb.appSettingDao().set(it) }
 
@@ -546,6 +788,110 @@ object LocalBackupRestoreService {
         amountPaisa = obj.getLong("amountPaisa"),
         occurredAtEpochMs = obj.getLong("occurredAtEpochMs"),
         notes = obj.optString("notes").takeIf { it.isNotEmpty() }
+    )
+
+    private fun parseAccount(obj: JSONObject) = AccountEntity(
+        id = obj.getString("id"),
+        name = obj.getString("name"),
+        type = obj.getString("type"),
+        currency = obj.optString("currency", "BDT"),
+        initialBalancePaisa = obj.optLong("initialBalancePaisa", 0L),
+        colorHex = obj.optString("colorHex", "#0F294D"),
+        iconName = obj.optString("iconName", "account_balance"),
+        displayOrder = obj.optInt("displayOrder", 0),
+        isArchived = obj.optBoolean("isArchived", false)
+    )
+
+    private fun parseNote(obj: JSONObject) = PersonalNoteEntity(
+        id = obj.getString("id"),
+        title = obj.getString("title"),
+        content = obj.getString("content"),
+        tags = obj.optString("tags").takeIf { it.isNotEmpty() },
+        isPinned = obj.optBoolean("isPinned", false),
+        isArchived = obj.optBoolean("isArchived", false)
+    )
+
+    private fun parsePlan(obj: JSONObject) = LifePlanEntity(
+        id = obj.getString("id"),
+        title = obj.getString("title"),
+        goalDescription = obj.optString("goalDescription").takeIf { it.isNotEmpty() },
+        startDateEpochMs = obj.getLong("startDateEpochMs"),
+        targetDateEpochMs = if (obj.has("targetDateEpochMs")) obj.getLong("targetDateEpochMs") else null,
+        estimatedBudgetPaisa = obj.optLong("estimatedBudgetPaisa", 0L),
+        progressPercentage = obj.optInt("progressPercentage", 0),
+        status = obj.optString("status", "ACTIVE")
+    )
+
+    private fun parseMilestone(obj: JSONObject) = PlanMilestoneEntity(
+        id = obj.getString("id"),
+        planId = obj.getString("planId"),
+        title = obj.getString("title"),
+        targetDateEpochMs = if (obj.has("targetDateEpochMs")) obj.getLong("targetDateEpochMs") else null,
+        isCompleted = obj.optBoolean("isCompleted", false)
+    )
+
+    private fun parseIdea(obj: JSONObject) = IdeaEntity(
+        id = obj.getString("id"),
+        title = obj.getString("title"),
+        details = obj.optString("details").takeIf { it.isNotEmpty() },
+        tags = obj.optString("tags").takeIf { it.isNotEmpty() },
+        nextAction = obj.optString("nextAction").takeIf { it.isNotEmpty() },
+        stage = obj.optString("stage", "IDEA")
+    )
+
+    private fun parseShoppingList(obj: JSONObject) = ShoppingListEntity(
+        id = obj.getString("id"),
+        name = obj.getString("name"),
+        targetDateEpochMs = if (obj.has("targetDateEpochMs")) obj.getLong("targetDateEpochMs") else null,
+        totalEstimatedPaisa = obj.optLong("totalEstimatedPaisa", 0L),
+        totalActualPaisa = obj.optLong("totalActualPaisa", 0L),
+        isArchived = obj.optBoolean("isArchived", false)
+    )
+
+    private fun parseShoppingItem(obj: JSONObject) = ShoppingItemEntity(
+        id = obj.getString("id"),
+        listId = obj.getString("listId"),
+        itemName = obj.getString("itemName"),
+        quantity = obj.optString("quantity").takeIf { it.isNotEmpty() },
+        estimatedPricePaisa = obj.optLong("estimatedPricePaisa", 0L),
+        actualPricePaisa = obj.optLong("actualPricePaisa", 0L),
+        isPurchased = obj.optBoolean("isPurchased", false),
+        priority = obj.optString("priority", "NORMAL")
+    )
+
+    private fun parseContact(obj: JSONObject) = PersonalContactEntity(
+        id = obj.getString("id"),
+        name = obj.getString("name"),
+        phoneNumber = obj.optString("phoneNumber").takeIf { it.isNotEmpty() },
+        email = obj.optString("email").takeIf { it.isNotEmpty() },
+        relationshipOrRole = obj.optString("relationshipOrRole").takeIf { it.isNotEmpty() }
+    )
+
+    private fun parseInvoice(obj: JSONObject) = InvoiceEntity(
+        id = obj.getString("id"),
+        invoiceNumber = obj.getString("invoiceNumber"),
+        issueDateEpochMs = obj.getLong("issueDateEpochMs"),
+        dueDateEpochMs = if (obj.has("dueDateEpochMs")) obj.getLong("dueDateEpochMs") else null,
+        senderName = obj.getString("senderName"),
+        senderContact = obj.optString("senderContact").takeIf { it.isNotEmpty() },
+        recipientName = obj.getString("recipientName"),
+        recipientContact = obj.optString("recipientContact").takeIf { it.isNotEmpty() },
+        currency = obj.optString("currency", "BDT"),
+        subtotalPaisa = obj.getLong("subtotalPaisa"),
+        discountPaisa = obj.optLong("discountPaisa", 0L),
+        taxPaisa = obj.optLong("taxPaisa", 0L),
+        totalPaisa = obj.getLong("totalPaisa"),
+        status = obj.optString("status", "UNPAID"),
+        notes = obj.optString("notes").takeIf { it.isNotEmpty() }
+    )
+
+    private fun parseInvoiceItem(obj: JSONObject) = InvoiceItemEntity(
+        id = obj.getString("id"),
+        invoiceId = obj.getString("invoiceId"),
+        description = obj.getString("description"),
+        quantity = obj.getDouble("quantity"),
+        unitRatePaisa = obj.getLong("unitRatePaisa"),
+        totalPaisa = obj.getLong("totalPaisa")
     )
 }
 

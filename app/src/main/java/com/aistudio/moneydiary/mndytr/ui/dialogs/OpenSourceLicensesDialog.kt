@@ -70,6 +70,18 @@ fun OpenSourceLicensesDialog(
                     }
                 }
 
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text("৩. Adorsholipi (আদর্শলিপি বাংলা)", style = KoriTypographyTokens.EntryTitle, color = MaterialTheme.colorScheme.onSurface)
+                        Text("Copyright (C) Ekushey / BdOSN / Ankur Group", style = KoriTypographyTokens.Metadata, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Licensed under GNU GPL with Font Embedding Exception (LICENSES/GPL-Adorsholipi.txt)", style = KoriTypographyTokens.Metadata.copy(fontFamily = FontFamily.Monospace, fontSize = 11.sp), color = MaterialTheme.colorScheme.primary)
+                    }
+                }
+
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     Button(onClick = onDismiss) {
                         Text("বন্ধ করুন", style = KoriTypographyTokens.PrimaryButton)

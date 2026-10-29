@@ -75,7 +75,12 @@ class DiaryViewModel(
                 _dateFilter
             ) { values ->
                 @Suppress("UNCHECKED_CAST")
-                val allEvents = values[0] as List<TransactionEntity>
+                val flowEvents = values[0] as List<TransactionEntity>
+                val allEvents = if (flowEvents.size < _uiState.value.allDiaryEntries.size) {
+                    ledgerEventDao.getAllNonDeleted()
+                } else {
+                    flowEvents
+                }
                 @Suppress("UNCHECKED_CAST")
                 val allCategories = values[1] as List<CategoryEntity>
                 @Suppress("UNCHECKED_CAST")
@@ -105,6 +110,47 @@ class DiaryViewModel(
                 )
             }.collect()
         }
+
+        viewModelScope.launch(ioDispatcher) {
+            db.personalNoteDao().observeAllNotes().collect { notes ->
+                _uiState.update { it.copy(personalNotes = notes) }
+            }
+        }
+        viewModelScope.launch(ioDispatcher) {
+            db.lifePlanDao().observeActivePlans().collect { plans ->
+                _uiState.update { it.copy(lifePlans = plans) }
+            }
+        }
+        viewModelScope.launch(ioDispatcher) {
+            db.ideaDao().observeAllIdeas().collect { ideas ->
+                _uiState.update { it.copy(ideas = ideas) }
+            }
+        }
+        viewModelScope.launch(ioDispatcher) {
+            db.shoppingListDao().observeShoppingLists().collect { lists ->
+                _uiState.update { it.copy(shoppingLists = lists) }
+            }
+        }
+        viewModelScope.launch(ioDispatcher) {
+            db.personalContactDao().observeAllContacts().collect { contacts ->
+                _uiState.update { it.copy(personalContacts = contacts) }
+            }
+        }
+        viewModelScope.launch(ioDispatcher) {
+            db.invoiceDao().observeAllInvoices().collect { invs ->
+                _uiState.update { it.copy(invoices = invs) }
+            }
+        }
+        viewModelScope.launch(ioDispatcher) {
+            db.vaultItemDao().observeAll().collect { vaults ->
+                _uiState.update { it.copy(vaultItems = vaults) }
+            }
+        }
+        viewModelScope.launch(ioDispatcher) {
+            db.progressAuditDao().observeAll().collect { audits ->
+                _uiState.update { it.copy(progressAudits = audits) }
+            }
+        }
     }
 
     suspend fun refreshNow() {
@@ -114,6 +160,28 @@ class DiaryViewModel(
         val activeGoals = frugalityGoalDao.getAllActive()
         val accounts = accountDao.getAllActive()
         val settings = appSettingDao.getAll().associate { it.key to it.value }
+
+        val notes = db.personalNoteDao().getAllNotesSync()
+        val plans = db.lifePlanDao().getAllPlansSync()
+        val ideas = db.ideaDao().getAllIdeasSync()
+        val lists = db.shoppingListDao().getAllListsSync()
+        val contacts = db.personalContactDao().getAllContactsSync()
+        val invs = db.invoiceDao().getAllInvoicesSync()
+        val vaults = db.vaultItemDao().getAllSync()
+        val audits = db.progressAuditDao().getAllSync()
+
+        _uiState.update {
+            it.copy(
+                personalNotes = notes,
+                lifePlans = plans,
+                ideas = ideas,
+                shoppingLists = lists,
+                personalContacts = contacts,
+                invoices = invs,
+                vaultItems = vaults,
+                progressAudits = audits
+            )
+        }
 
         processData(
             allEvents = allEvents,
@@ -411,7 +479,8 @@ class DiaryViewModel(
                 parties = parties,
                 debtReceivablesSummary = debtSummary,
                 yesterdayHasNoEntries = yesterdayHasNoEntries,
-                upcomingDebtNotice = upcomingDebtNotice
+                upcomingDebtNotice = upcomingDebtNotice,
+                appLanguage = settings["language"] ?: "bn"
             )
         }
     }
@@ -569,7 +638,8 @@ class DiaryViewModel(
         description: String,
         notes: String? = null,
         necessity: NecessityClassification = NecessityClassification.UNSPECIFIED,
-        occurrenceDateEpochMs: Long = System.currentTimeMillis()
+        occurrenceDateEpochMs: Long = System.currentTimeMillis(),
+        lineItems: List<Pair<String, Long>> = emptyList()
     ) {
         viewModelScope.launch(ioDispatcher) {
             DiagnosticService.addCheckpoint("VIEWMODEL_SUBMIT_STARTED", type.name)
@@ -595,6 +665,21 @@ class DiaryViewModel(
 
             when (result) {
                 is FinancialResult.Success -> {
+                    if (lineItems.isNotEmpty()) {
+                        val itemEntities = lineItems.map { (itemDesc, itemAmt) ->
+                            com.aistudio.moneydiary.mndytr.data.local.entity.TransactionLineItemEntity(
+                                id = UUID.randomUUID().toString(),
+                                transactionId = result.data.id,
+                                description = itemDesc,
+                                amountPaisa = itemAmt,
+                                categoryId = categoryId,
+                                notes = null,
+                                createdAtEpochMs = System.currentTimeMillis()
+                            )
+                        }
+                        db.transactionLineItemDao().insertAll(itemEntities)
+                    }
+
                     _uiState.update {
                         it.copy(
                             activeDialog = ActiveDialog.None,

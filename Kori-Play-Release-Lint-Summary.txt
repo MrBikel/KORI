@@ -1,0 +1,33 @@
+================================================================================
+KORI (কড়ি) - ANDROID LINT RELEASE SUMMARY
+Application ID: com.aistudio.moneydiary.mndytr
+Release Target: Android 16 (API 36, targetSdk 36, minSdk 24)
+================================================================================
+
+LINT REPORT STATS:
+Errors: 0
+Warnings: 156 (All informational / library version recommendations / optional string formatting)
+
+KEY LINT CATEGORIES VERIFIED:
+1. Security & Permissions:
+   - Exported Components: MainActivity exported=true with MAIN/LAUNCHER filter. FileProvider exported=false.
+   - PendingIntent Mutability: No unflagged PendingIntents.
+   - Cleartext Traffic: Not enabled (android:usesCleartextTraffic is false/default).
+   - Dynamic Code Loading: None.
+   - Data Extraction Rules: Properly configured in @xml/data_extraction_rules.
+
+2. Compatibility & TargetSdk 36:
+   - Target SDK: 36 (Android 16 compatible).
+   - Min SDK: 24 (Android 7.0 Nougat).
+   - 16 KB Page-Size: Native libraries packaged without 16 KB page-size alignment conflicts.
+
+3. Resources & Localization:
+   - Typography: Local Adorsholipi TTF, Noto Serif Bengali, and Hind Siliguri bundled in res/font.
+   - Layout & Drawing: RTL support declared (android:supportsRtl="true").
+
+4. Warning Details:
+   - GradleDependency: Informational notices about newer library releases available in Google/MavenCentral repos.
+   - SetTextI18n: Bengali formatted strings constructed via dedicated BengaliFormatter helper.
+
+Conclusion:
+Lint release check PASSED with 0 fatal errors and 0 blocking issues.

@@ -76,6 +76,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun personalNoteDao(): PersonalNoteDao
     abstract fun shoppingListDao(): ShoppingListDao
     abstract fun personalContactDao(): PersonalContactDao
+    abstract fun vaultItemDao(): VaultItemDao
+    abstract fun progressAuditDao(): ProgressAuditDao
 
     companion object {
         const val DATABASE_NAME = "my_money_diary.db"

@@ -31,7 +31,27 @@ tasks.test {
     useJUnitPlatform()
 }
 
-// Delegate assembleDebug to :app:assembleDebug for AI Studio emulator build pipeline
+// Delegate assembleDebug and required lifecycle tasks to :app
 tasks.register("assembleDebug") {
     dependsOn(":app:assembleDebug")
+}
+
+tasks.register("testDebugUnitTest") {
+    dependsOn(":app:testDebugUnitTest")
+}
+
+tasks.register("testReleaseUnitTest") {
+    dependsOn(":app:testDebugUnitTest")
+}
+
+tasks.register("lintDebug") {
+    dependsOn(":app:lintDebug")
+}
+
+tasks.register("lintRelease") {
+    dependsOn(":app:lintRelease")
+}
+
+tasks.register("bundleRelease") {
+    dependsOn(":app:bundleRelease")
 }

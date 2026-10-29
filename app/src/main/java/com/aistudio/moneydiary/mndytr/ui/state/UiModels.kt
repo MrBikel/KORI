@@ -71,6 +71,25 @@ sealed class ActiveDialog {
     object WeeklyReview : ActiveDialog()
     object MonthlyReview : ActiveDialog()
 
+    // Life Management & Reports Dialogs
+    object LifePlans : ActiveDialog()
+    object AddLifePlan : ActiveDialog()
+    object Ideas : ActiveDialog()
+    object AddIdea : ActiveDialog()
+    object PersonalNotes : ActiveDialog()
+    object AddPersonalNote : ActiveDialog()
+    object PersonalVault : ActiveDialog()
+    object AddVaultItem : ActiveDialog()
+    object ShoppingLists : ActiveDialog()
+    object AddShoppingList : ActiveDialog()
+    object PersonalContacts : ActiveDialog()
+    object AddPersonalContact : ActiveDialog()
+    object ProgressAudits : ActiveDialog()
+    object AddProgressAudit : ActiveDialog()
+    object Invoices : ActiveDialog()
+    object CreateInvoice : ActiveDialog()
+    object BankStatement : ActiveDialog()
+
     // Backward compatibility aliases for existing test suite
     object AddWorkAdvance : ActiveDialog()
     object Transfer : ActiveDialog()
@@ -194,5 +213,16 @@ data class DiaryUiState(
     val isAiEnabled: Boolean = false,
     val aiDataSharingPreference: com.aistudio.moneydiary.mndytr.domain.service.AiDataSharingPreference = com.aistudio.moneydiary.mndytr.domain.service.AiDataSharingPreference.NEVER_SHARE,
     val yesterdayHasNoEntries: Boolean = false,
-    val upcomingDebtNotice: String? = null
+    val upcomingDebtNotice: String? = null,
+
+    // Language & Life Management State
+    val appLanguage: String = "bn",
+    val lifePlans: List<com.aistudio.moneydiary.mndytr.data.local.entity.LifePlanEntity> = emptyList(),
+    val ideas: List<com.aistudio.moneydiary.mndytr.data.local.entity.IdeaEntity> = emptyList(),
+    val personalNotes: List<com.aistudio.moneydiary.mndytr.data.local.entity.PersonalNoteEntity> = emptyList(),
+    val vaultItems: List<com.aistudio.moneydiary.mndytr.data.local.entity.VaultItemEntity> = emptyList(),
+    val shoppingLists: List<com.aistudio.moneydiary.mndytr.data.local.entity.ShoppingListEntity> = emptyList(),
+    val personalContacts: List<com.aistudio.moneydiary.mndytr.data.local.entity.PersonalContactEntity> = emptyList(),
+    val progressAudits: List<com.aistudio.moneydiary.mndytr.data.local.entity.ProgressAuditEntity> = emptyList(),
+    val invoices: List<com.aistudio.moneydiary.mndytr.data.local.entity.InvoiceEntity> = emptyList()
 )

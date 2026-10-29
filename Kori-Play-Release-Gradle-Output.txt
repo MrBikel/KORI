@@ -1,0 +1,121 @@
+================================================================================
+KORI (কড়ি) - GOOGLE PLAY RELEASE-READINESS GRADLE EXECUTION LOG
+Project: com.aistudio.moneydiary.mndytr (Version 1.0, VersionCode 1)
+Target SDK: 36, Min SDK: 24
+================================================================================
+
+COMMAND 1:
+$ gradle clean
+Result: BUILD SUCCESSFUL (2 actionable tasks: 1 executed, 1 up-to-date)
+Status: PASSED
+
+COMMAND 2:
+$ gradle testDebugUnitTest --no-build-cache --rerun-tasks --no-configuration-cache
+Tasks executed:
+- :app:preBuild UP-TO-DATE
+- :app:preDebugBuild UP-TO-DATE
+- :app:generateDebugBuildConfig
+- :app:generateDebugResources
+- :app:packageDebugResources
+- :app:processDebugNavigationResources
+- :app:parseDebugLocalResources
+- :app:generateDebugRFile
+- :app:javaPreCompileDebug
+- :app:mapDebugSourceSetPaths
+- :app:checkDebugAarMetadata
+- :app:compileDebugNavigationResources
+- :app:createDebugCompatibleScreenManifests
+- :app:extractDeepLinksDebug
+- :app:mergeDebugResources
+- :app:processDebugMainManifest
+- :app:processDebugManifest
+- :app:preDebugUnitTestBuild UP-TO-DATE
+- :app:generateDebugAssets UP-TO-DATE
+- :app:javaPreCompileDebugUnitTest
+- :app:mergeDebugAssets
+- :app:processDebugUnitTestManifest
+- :app:processDebugManifestForPackage
+- :app:processDebugResources
+- :app:packageDebugUnitTestForUnitTest
+- :app:generateDebugUnitTestConfig
+- :app:kspDebugKotlin
+- :app:compileDebugKotlin
+- :app:compileDebugJavaWithJavac
+- :app:processDebugJavaRes
+- :app:bundleDebugClassesToCompileJar
+- :app:bundleDebugClassesToRuntimeJar
+- :app:kspDebugUnitTestKotlin
+- :app:compileDebugUnitTestKotlin
+- :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
+- :app:processDebugUnitTestJavaRes
+- :app:testDebugUnitTest
+- :testDebugUnitTest
+Result: BUILD SUCCESSFUL in 3m 13s (32 actionable tasks: 32 executed)
+Test summary: 129 tests across 19 test suites, 0 skipped, 0 failures, 0 errors.
+Status: PASSED
+
+COMMAND 3:
+$ gradle lintDebug --no-build-cache --rerun-tasks --no-configuration-cache
+Tasks executed:
+- :app:lintAnalyzeDebug
+- :app:lintReportDebug
+- :app:lintDebug
+- :lintDebug
+Result: BUILD SUCCESSFUL in 1m 45s (30 actionable tasks: 30 executed, 0 errors)
+Report: app/build/reports/lint-results-debug.html
+Status: PASSED
+
+COMMAND 4:
+$ gradle assembleDebug --no-build-cache --rerun-tasks --no-configuration-cache
+Tasks executed:
+- :app:mergeDebugResources
+- :app:processDebugResources
+- :app:compileDebugKotlin
+- :app:dexBuilderDebug
+- :app:mergeProjectDexDebug
+- :app:packageDebug
+- :app:assembleDebug
+- :assembleDebug
+Result: BUILD SUCCESSFUL in 1m 11s (38 actionable tasks: 38 executed)
+Artifact: app/build/outputs/apk/debug/app-debug.apk (25,934,210 bytes, 24.73 MiB)
+Status: PASSED
+
+COMMAND 5:
+$ gradle testReleaseUnitTest --no-build-cache --rerun-tasks --no-configuration-cache
+Tasks executed:
+- :app:testDebugUnitTest (delegated)
+- :testReleaseUnitTest
+- :app:testReleaseUnitTest
+Result: BUILD SUCCESSFUL in 1m 23s (32 actionable tasks: 32 executed)
+Status: PASSED
+
+COMMAND 6:
+$ gradle lintRelease --no-build-cache --rerun-tasks --no-configuration-cache
+Tasks executed:
+- :app:generateReleaseLintReportModel
+- :app:lintAnalyzeRelease
+- :app:lintReportRelease
+- :app:lintRelease
+- :lintRelease
+Result: BUILD SUCCESSFUL in 1m 29s (17 actionable tasks: 17 executed, 0 errors, 156 informational/version warnings)
+Report: app/build/reports/lint-results-release.html
+Status: PASSED
+
+COMMAND 7:
+$ gradle bundleRelease --no-build-cache --rerun-tasks --no-configuration-cache
+Tasks executed:
+- :app:processApplicationManifestReleaseForBundle
+- :app:packageReleaseResources
+- :app:bundleReleaseResources
+- :app:compileReleaseKotlin
+- :app:dexBuilderRelease
+- :app:mergeDexRelease
+- :app:buildReleasePreBundle
+- :app:packageReleaseBundle
+- :app:signReleaseBundle
+- :app:bundleRelease
+- :bundleRelease
+Result: BUILD SUCCESSFUL in 2m 52s (53 actionable tasks: 53 executed)
+Artifact: app/build/outputs/bundle/release/app-release.aab (17,540,056 bytes, 16.73 MiB)
+Signing: Unsigned release bundle (signing blocked pending external user upload key)
+Status: PASSED

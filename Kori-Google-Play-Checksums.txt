@@ -1,0 +1,6 @@
+# KORI (কড়ি) Release Artifact Checksums (SHA-256)
+# Generated: 2026-10-26
+
+b6be7c77fccb3826e670bddf0941346581b0879fe4e72dd0f7ad257516f14be2  app/build/outputs/bundle/release/app-release.aab
+6e594ac6ef26f8b05e0cf1161a3a017eca32694bf0a70b29c46b00699389764d  app/build/outputs/apk/debug/app-debug.apk
+b1596ae207611735fb2a589324154029751b9c4418b91632cf732de44e39800a  Kori-Google-Play-Release-Source.zip
